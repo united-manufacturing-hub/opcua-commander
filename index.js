@@ -92,7 +92,7 @@ function monitor_item(treeItem) {
     var browseName = treeItem.browseName || node.nodeId.toString();
 
 
-    var monitoredItemData = ['#',node.nodeId.toString(),'Q'];
+    var monitoredItemData = [node.browseName,node.nodeId.toString(),'Q'];
     monitoredItemsListData.push(monitoredItemData);
     monitoredItemsList.setRows(monitoredItemsListData);
     if (false) {
@@ -111,7 +111,11 @@ function monitor_item(treeItem) {
     monitoredItem.on("changed",function(dataValue){
 
         console.log(" value ",node.browseName,node.nodeId.toString(), " changed to ",dataValue.value.toString().green)
-        node.valueAsString = w(dataValue.value.value.toPrecision(3),16);
+        if (dataValue.value.value.toPrecision) {
+            node.valueAsString = w(dataValue.value.value.toPrecision(3),16);
+        } else {
+            node.valueAsString = w(dataValue.value.value.toString(),16);
+        }
 
         //xx series1.title =  browseName+ " = " + dataValue.value.toString();
         //xx series1.x.push(series1.x.length+1);
@@ -243,6 +247,14 @@ var scrollbar={
     }
 };
 var style = {
+
+    focus: {
+        border: {
+            bg: 'yellow'
+        },
+        bold: false
+
+    },
     item: {
         hover: {
             bg: 'blue'
@@ -264,31 +276,18 @@ var attributeList = blessed.listtable({
     //xx draggable: true,
     top: "top+1",
     left: w2+"-1",
-    width: '30%-1',
+    width: '60%-1',
     height: '60%-10',
-    keys: true,
-    //xx vi: true,
-    //xx mouse: true,
     border: 'line',
     scrollbar: scrollbar,
-    style: style,
-    align:"left",
-    search: function (callback) {
-        prompt.input('Search:', '', function (err, value) {
-            if (err) return;
-            return callback(null, value);
-        });
-    }
+    style: _.clone(style),
+    align:"left"
 });
 
 screen.append(attributeList);
 
 attributeList.setRows(
     [
-        ["NodeId","i=1000"],
-        ["{bold}{cyan-fg}Objects{/cyan-fg}{/bold}","32"],
-        ["Views","Hello"],
-        ["DataTypes","World"]
     ]);
 
 
@@ -343,6 +342,7 @@ function fill_attributesRegion(node) {
                 ]);
             }
             attributeList.setRows(attr);
+            attributeList.render();
         }
     })
 }
@@ -364,12 +364,13 @@ function install_address_space_explorer() {
         vi: true,
         mouse: true,
         border: 'line',
+        style: _.clone(style)
 
     });
 
     //allow control the table with the keyboard
     tree.on('select', function (node, index) {
-        console.log("select "  +  node.content  + " at index =", index);
+        //x console.log("select "  +  node.content  + " at index =", index);
         fill_attributesRegion(node.node);
     });
 
@@ -388,7 +389,7 @@ function install_address_space_explorer() {
 
 
     attributeList.key(['t'], function (ch, key) {
-        console.log("setting focus to TREE");
+        console.log("setting focus to AdressSpace tree");
         tree.focus();
     });
     tree.key(['l'], function (ch, key) {
@@ -419,13 +420,13 @@ function install_monitoredItemsWindow() {
             parent: screen,
             top: "40%+1",
             left: w2+"-1",
-            width: '70%-1',
-            height: '40%-10',
+            width: '60%-1',
+            height: '60%-10',
             keys: true,
             label: 'Monitored Items',
             border: 'line',
             scrollbar: scrollbar,
-            style: style,
+            style: _.clone(style),
             align:"left"
         });
 

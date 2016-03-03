@@ -48,7 +48,6 @@ function Tree(options) {
 
     List.call(this, options);
 
-
     this.key(['+'],this.expandSelected.bind(this));
     this.key(['-'],this.collapseSelected.bind(this));
 
@@ -169,7 +168,7 @@ Tree.prototype.setData = function(data) {
 
     this.__data = data;
     this.walk(data,0);
-    this.screen.render();
+    this.render();
 };
 
 exports.tree = Tree;

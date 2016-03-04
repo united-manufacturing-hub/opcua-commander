@@ -1,13 +1,20 @@
 {
-  "name": "experiment",
+  "name": "opcua-commander",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "keywords": [
+    "opcua"
+  ],
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
+  "author": "Etienne Rossignon",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/node-opcua/opcua-commander.git"
+  },
   "dependencies": {
     "async": "^1.5.2",
     "blessed": "^0.1.81",
@@ -16,5 +23,12 @@
     "node-opcua": "0.0.52",
     "underscore": "^1.8.3",
     "yargs": "^4.2.0"
+  },
+  "bin": {
+    "opcua-commander": "./bin/opcua-commander",
+    "oc": "./bin/opcua-commander"
+  },
+  "engines": {
+    "node": ">= 0.12"
   }
 }

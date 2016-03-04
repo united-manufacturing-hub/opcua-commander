@@ -48,8 +48,8 @@ function Tree(options) {
 
     List.call(this, options);
 
-    this.key(['+'],this.expandSelected.bind(this));
-    this.key(['-'],this.collapseSelected.bind(this));
+    this.key(['+','right'],this.expandSelected.bind(this));
+    this.key(['-','left'],this.collapseSelected.bind(this));
 
 }
 
@@ -92,9 +92,9 @@ Tree.prototype.walk = function (node,depth) {
 
     var self = this;
 
-
     if (self.items.length) {
         self._old_selectedNode = self.items[self.selected].node;
+        assert(self._old_selectedNode);
     }
     self._index_selectedNode = -1;
     this.setItems([]);
@@ -102,7 +102,6 @@ Tree.prototype.walk = function (node,depth) {
     if (node.name && depth === 0) {
         // root node
         node.depth = 0;
-        node._parent =null;
         self._add(node,true,null);
     }
 
@@ -129,10 +128,12 @@ Tree.prototype.walk = function (node,depth) {
             }
         }
     }
-    dumpChildren(node,depth);
-    if (self._index_selectedNode >=0) {
-        self.select(self._index_selectedNode)
+    if (node.expanded) {
+        dumpChildren(node, depth);
     }
+    self._index_selectedNode = self._index_selectedNode >=0 ? self._index_selectedNode: 0;
+    self.select(self._index_selectedNode)
+
 };
 
 function dummy(node,callback) {
@@ -143,14 +144,18 @@ Tree.prototype.expandSelected = function() {
 
     var self = this;
     var node = self.items[self.selected].node;
+
+
     if (node.expanded) {
         return;
     }
+
     var populate_children = _.isFunction(node.children) ? node.children : dummy;
     populate_children(node,function(err,children) {
-        node.children =children;
-        node.expanded= true;
-        return self.setData(self.__data);
+        assert(_.isArray(children));
+        node.children = children;
+        node.expanded = true;
+        self.setData(self.__data);
     });
  };
 
@@ -161,14 +166,15 @@ Tree.prototype.collapseSelected = function() {
         return;
     }
     node.expanded= false;
-    return this.setData(this.__data);
+    console.log(" collasping",self.selected);
+    this.setData(this.__data);
 };
 
 Tree.prototype.setData = function(data) {
 
     this.__data = data;
     this.walk(data,0);
-    this.render();
+    this.screen.render();
 };
 
 exports.tree = Tree;

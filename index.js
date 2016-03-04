@@ -16,13 +16,13 @@ var DataTypeIdsToString = _.invert(opcua.DataTypeIds);
 var NodeClassToString = _.invert(opcua.NodeClass);
 
 
-
 var client = new opcua.OPCUAClient();
 
 var endpoint = "opc.tcp://localhost:26543";
 var g_session = null;
 
-var populateTree = function(){};
+var populateTree = function () {
+};
 
 var g_subscription = null;
 function create_subscription() {
@@ -30,16 +30,16 @@ function create_subscription() {
     assert(g_session);
     var parameters = {
         requestedPublishingInterval: 100,
-        requestedLifetimeCount:      1000,
-        requestedMaxKeepAliveCount:  12,
-        maxNotificationsPerPublish:  100,
+        requestedLifetimeCount: 1000,
+        requestedMaxKeepAliveCount: 12,
+        maxNotificationsPerPublish: 100,
         publishingEnabled: true,
         priority: 10
     };
     g_subscription = new opcua.ClientSubscription(g_session, parameters);
 
 }
-client.connect(endpoint,function() {
+client.connect(endpoint, function () {
 
     client.createSession(function (err, session) {
         if (!err) {
@@ -47,7 +47,7 @@ client.connect(endpoint,function() {
             create_subscription();
             populateTree();
         } else {
-            console.log(" Cannot create session ",err.toString());
+            console.log(" Cannot create session ", err.toString());
             process.exit(-1);
         }
 
@@ -56,13 +56,12 @@ client.connect(endpoint,function() {
 });
 
 function disconnect() {
-    g_session.close(function() {
-        client.disconnect(function(err) {
+    g_session.close(function () {
+        client.disconnect(function (err) {
 
         });
     });
 }
-
 
 
 var monitoredItemsListData = [];
@@ -72,7 +71,7 @@ function monitor_item(treeItem) {
     var node = treeItem.node;
 
 
-  var monitoredItem  = g_subscription.monitor({
+    var monitoredItem = g_subscription.monitor({
             nodeId: node.nodeId,
             attributeId: opcua.AttributeIds.Value
             //, dataEncoding: { namespaceIndex: 0, name:null }
@@ -92,7 +91,7 @@ function monitor_item(treeItem) {
     var browseName = treeItem.browseName || node.nodeId.toString();
 
 
-    var monitoredItemData = [node.browseName,node.nodeId.toString(),'Q'];
+    var monitoredItemData = [node.browseName, node.nodeId.toString(), 'Q'];
     monitoredItemsListData.push(monitoredItemData);
     monitoredItemsList.setRows(monitoredItemsListData);
     if (false) {
@@ -105,16 +104,13 @@ function monitor_item(treeItem) {
     }
 
 
-    function w(s,l) {
-        return (s+"                      ").substr(0,l);
-    }
-    monitoredItem.on("changed",function(dataValue){
+    monitoredItem.on("changed", function (dataValue) {
 
-        console.log(" value ",node.browseName,node.nodeId.toString(), " changed to ",dataValue.value.toString().green)
-        if (dataValue.value.value.toPrecision) {
-            node.valueAsString = w(dataValue.value.value.toPrecision(3),16);
+        console.log(" value ", node.browseName, node.nodeId.toString(), " changed to ", dataValue.value.toString().green)
+        if (dataValue.value.value.toFixed) {
+            node.valueAsString = w(dataValue.value.value.toFixed(3), 16);
         } else {
-            node.valueAsString = w(dataValue.value.value.toString(),16);
+            node.valueAsString = w(dataValue.value.value.toString(), 16);
         }
 
         //xx series1.title =  browseName+ " = " + dataValue.value.toString();
@@ -136,13 +132,15 @@ function monitor_item(treeItem) {
  */
 function TreeItem(options) {
     var self = this;
-    Object.keys(options).forEach(function(k){self[k] = options[k];});
+    Object.keys(options).forEach(function (k) {
+        self[k] = options[k];
+    });
 }
-TreeItem.prototype.__defineGetter__("name",function() {
+TreeItem.prototype.__defineGetter__("name", function () {
     return this.arrow
 });
-TreeItem.prototype.__defineGetter__("name",function() {
-    var str =  this.arrow + " " + this.browseName;
+TreeItem.prototype.__defineGetter__("name", function () {
+    var str = this.arrow + " " + this.browseName;
     if (this.class === opcua.NodeClass.Variable) {
         str += " = " + this.valueAsString;
     }
@@ -155,40 +153,39 @@ function expand_opcua_node(node, callback) {
     if (!g_session) {
         return callback(new Error("No Connection"));
     }
-    //xx console.log("expand_opcua_node = ",node.nodeId.toString());
     var children = [];
 
-    var b =  [
+    var b = [
         {
             nodeId: node.nodeId,
             referenceTypeId: "Organizes",
             browseDirection: opcua.browse_service.BrowseDirection.Forward,
-            resultMask : 0x3f
+            resultMask: 0x3f
 
         },
         {
             nodeId: node.nodeId,
             referenceTypeId: "HasProperty",
             browseDirection: opcua.browse_service.BrowseDirection.Forward,
-            resultMask : 0x3f
+            resultMask: 0x3f
 
         },
         {
             nodeId: node.nodeId,
             referenceTypeId: "HasComponent",
             browseDirection: opcua.browse_service.BrowseDirection.Forward,
-            resultMask : 0x3f
+            resultMask: 0x3f
 
         }
     ];
 
-    g_session.browse(b,function(err,results) {
+    g_session.browse(b, function (err, results) {
 
-        if(!err) {
+        if (!err) {
 
             var result = results[0];
             var i;
-            for(i=0;i<result.references.length;i++) {
+            for (i = 0; i < result.references.length; i++) {
                 var ref = result.references[i];
                 children.push(new TreeItem({
                     arrow: "◊-o-> ",
@@ -200,7 +197,7 @@ function expand_opcua_node(node, callback) {
             }
 
             result = results[1];
-            for(i=0;i<result.references.length;i++) {
+            for (i = 0; i < result.references.length; i++) {
                 var ref = result.references[i];
                 children.push(new TreeItem({
                     arrow: "╙p-> ",
@@ -211,7 +208,7 @@ function expand_opcua_node(node, callback) {
                 }));
             }
             result = results[2];
-            for(i=0;i<result.references.length;i++) {
+            for (i = 0; i < result.references.length; i++) {
                 var ref = result.references[i];
                 children.push(new TreeItem({
                     arrow: "╙c-> ",
@@ -222,7 +219,7 @@ function expand_opcua_node(node, callback) {
                 }));
             }
         }
-        callback(err,children);
+        callback(err, children);
     });
 }
 
@@ -230,14 +227,29 @@ function expand_opcua_node(node, callback) {
 // Create a screen object.
 var screen = blessed.screen({
     smartCSR: true,
-    "autoPadding": false,
-    "fullUnicode": true
+    autoPadding: false,
+    fullUnicode: true
 });
-
 screen.title = 'OPCUA CLI-Client';
 
+// create the main area
+var area1 = blessed.box({
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '90%-10',
+});
+screen.append(area1);
+var area2 = blessed.box({
+    top: '90%-9',
+    left: 0,
+    width: '100%',
+    height: 'shrink',
 
-var scrollbar={
+});
+screen.append(area2);
+
+var scrollbar = {
     ch: ' ',
     track: {
         bg: 'cyan'
@@ -250,7 +262,7 @@ var style = {
 
     focus: {
         border: {
-            bg: 'yellow'
+            fg: 'yellow'
         },
         bold: false
 
@@ -262,104 +274,128 @@ var style = {
     },
     selected: {
         bg: 'blue',
-            bold: true
+        bold: true
     }
 };
 var w1 = 'left';
 var w2 = '40%';
 var w3 = '70%';
 
-var attributeList = blessed.listtable({
-    parent: screen,
-    label: ' {bold}{cyan-fg}Attribute List{/cyan-fg}{/bold}',
-    tags: true,
-    //xx draggable: true,
-    top: "top+1",
-    left: w2+"-1",
-    width: '60%-1',
-    height: '60%-10',
-    border: 'line',
-    scrollbar: scrollbar,
-    style: _.clone(style),
-    align:"left"
-});
+var attributeList = null;
 
-screen.append(attributeList);
-
-attributeList.setRows(
-    [
-    ]);
+function w(s, l, c) {
+    c = c || " ";
+    var filling = Array(25).join(c[0]);
+    return (s + filling).substr(0, l);
+}
+function makeItems(arr) {
+    return arr.map(function (a) {
+        return w(a[0], 25, ".") + ": " + w(a[1], attributeList.width - 28);
+    });
+}
+function install_attributeList() {
 
 
+    attributeList = blessed.list({
+        parent: area1,
+        label: ' {bold}{cyan-fg}Attribute List{/cyan-fg}{/bold}',
+        top: 0,
+        tags: true,
+        left: w2 + "+1",
+        width: '60%-1',
+        height: '50%',
+        border: 'line',
+        noCellBorders: true,
+        scrollbar: scrollbar,
+        style: _.clone(style),
+        align: "left",
+        keys: true
+    });
+    area1.append(attributeList);
 
-function d(dataValue) {
-    //xconsole.log("dataValue =",dataValue.toString())
-    if (!dataValue.value) {
-        return "<???>";
-    }
-    return dataValue.value.value.toString()
+    attributeList.setItems(makeItems([]));
 }
 
-function toString1(attribute,dataValue) {
+function d(dataValue) {
+    if (!dataValue.value) {
+        return "<???> : " + dataValue.statusCode.toString();
+    }
+    switch (dataValue.value.arrayType) {
+        case opcua.VariantArrayType.Scalar:
+            return dataValue.value.value.toString();
+        case opcua.VariantArrayType.Array:
+            return "l= " + dataValue.value.value.length + " [ " + dataValue.value.value[0] + " ... ]"
 
-    switch(attribute) {
+    }
+    return "";
+}
+
+function toString1(attribute, dataValue) {
+
+    switch (attribute) {
         case opcua.AttributeIds.DataType:
-            //xx console.log("dataValue.value.value.value=",dataValue.value.value.toString());
-            return DataTypeIdsToString[dataValue.value.value.value] + " ("+ dataValue.value.value.toString() + ")";
+            return DataTypeIdsToString[dataValue.value.value.value] + " (" + dataValue.value.value.toString() + ")";
         case opcua.AttributeIds.NodeClass:
             return NodeClass.get(dataValue.value.value).key + " (" + dataValue.value.value + ")";
         case opcua.AttributeIds.WriteMask:
         case opcua.AttributeIds.UserWriteMask:
-            return  " (" + dataValue.value.value + ")";
+            return " (" + dataValue.value.value + ")";
         case opcua.AttributeIds.UserAccessLevel:
         case opcua.AttributeIds.AccessLevel:
-            return  opcua.AccessLevelFlag.get(dataValue.value.value).key + " (" + dataValue.value.value + ")";
+            return opcua.AccessLevelFlag.get(dataValue.value.value).key + " (" + dataValue.value.value + ")";
         default:
             return d(dataValue);
     }
 }
 
 
-
 function fill_attributesRegion(node) {
 
-    console.log(" Reading nodeId ",node.nodeId);
     var attr = [];
-    g_session.readAllAttributes(node.nodeId,function(err,nodesToRead,dataValues) {
+    g_session.readAllAttributes(node.nodeId, function (err, nodesToRead, dataValues) {
+
         if (!err) {
 
-            var i=0;
-            for (i=0;i<nodesToRead.length;i++) {
+            var i;
+            for (i = 0; i < nodesToRead.length; i++) {
 
                 var nodeToRead = nodesToRead[i];
                 var dataValue = dataValues[i];
                 if (dataValue.statusCode !== opcua.StatusCodes.Good) {
                     continue;
                 }
-                attr.push([
-                    attributeIdtoString[nodeToRead.attributeId],
-                    toString1(nodeToRead.attributeId,dataValue)
-                ]);
+                var s = toString1(nodeToRead.attributeId, dataValue);
+
+                var a = s.split("\n");
+                if (a.length === 1) {
+                    attr.push([attributeIdtoString[nodeToRead.attributeId], s]);
+                } else {
+                    attr.push([attributeIdtoString[nodeToRead.attributeId], a[0]]);
+                    for (i = 1; i < a.length; i++) {
+                        attr.push(["   |    ", a[i]]);
+                    }
+                }
             }
-            attributeList.setRows(attr);
-            attributeList.render();
+            attributeList.setItems(makeItems(attr));
+            attributeList.screen.render();
         }
     })
 }
 
-
+var refreshTimer = 0;
+var tree;
 function install_address_space_explorer() {
 
-    var tree = widget_tree.tree({
-        parent: screen,
-        tags:true,
+    tree = widget_tree.tree({
+        parent: area1,
+        tags: true,
         fg: 'green',
         //Xx keys: true,
         label: ' {bold}{cyan-fg}Address Space{/cyan-fg}{/bold}',
-        top: 'top+1',
-        left: '0',
-        width: '40%-2',
-        height: '100%-10',
+        top: 'top',
+        left: 'left',
+        width: '40%',
+        height: '100%',
 //xx    keys: true,
         vi: true,
         mouse: true,
@@ -369,38 +405,32 @@ function install_address_space_explorer() {
     });
 
     //allow control the table with the keyboard
-    tree.on('select', function (node, index) {
-        //x console.log("select "  +  node.content  + " at index =", index);
-        fill_attributesRegion(node.node);
-    });
-
-    screen.append(tree);
-    screen.key(['t'], function (ch, key) {
-        tree.focus();
-    });
-    tree.key(["m"],function(ch,key) {
-        var node =this.items[this.selected];
-        if(node.monitoredItem) {
-            console.log(" Already monitoring ",node.node.nodeId.toString());
-            return;
+    tree.on('select', function (treeItem, index) {
+        if (treeItem) {
+            fill_attributesRegion(treeItem.node);
         }
-        monitor_item(node);
+    });
+    tree.on('keypress', function (ch, key) {
+        if (key.name === 'up' || key.name === 'down') {
+            if (refreshTimer) {
+                return;
+            }
+            var self = this;
+            refreshTimer = setTimeout(function () {
+                var treeItem = self.items[self.selected];
+                if (treeItem && treeItem.node) {
+                    fill_attributesRegion(treeItem.node);
+                }
+                refreshTimer = 0;
+            }, 100);
+        }
+
     });
 
+    area1.append(tree);
 
-    attributeList.key(['t'], function (ch, key) {
-        console.log("setting focus to AdressSpace tree");
-        tree.focus();
-    });
-    tree.key(['l'], function (ch, key) {
-        attributeList.focus();
-    });
-    screen.key(['t'], function (ch, key) {
-        console.log("setting focus to tree");
-        tree.focus();
-    });
 
-    populateTree = function(){
+    populateTree = function () {
         tree.setData({
             name: "RootFolder",
             nodeId: opcua.resolveNodeId("RootFolder"),
@@ -416,33 +446,34 @@ function install_monitoredItemsWindow() {
 
     monitoredItemsList = blessed.listtable(
         {
+            parent: area1,
             tags: true,
-            parent: screen,
-            top: "40%+1",
-            left: w2+"-1",
+            top: "50%",
+            left: w2 + "+1",
             width: '60%-1',
-            height: '60%-10',
+            height: '50%',
             keys: true,
             label: 'Monitored Items',
             border: 'line',
             scrollbar: scrollbar,
+            noCellBorders: true,
             style: _.clone(style),
-            align:"left"
+            align: "left"
         });
 
-    screen.append(monitoredItemsList);
+    area1.append(monitoredItemsList);
 
     //xx monitoredItemsList.setRows([["1","a"]])
 
 }
-var line =null;
+var line = null;
 function install_graphWindow() {
-     line = contrib.line(
+    line = contrib.line(
         {
             top: "40%+1",
-            left: w2+"-1",
+            left: w2 + "-1",
             width: '70%-1',
-            height: '40%-10',
+            height: '40%-8',
             keys: true,
             style: {
                 line: "yellow"
@@ -473,13 +504,13 @@ function install_logWindow() {
 
     var logWindow = blessed.list({
 
+        parent: area2,
         tags: true,
         label: ' {bold}{cyan-fg}Info{/cyan-fg}{/bold}',
-
-        top: '100%-8',
-        left: 'left+1',
-        width: '100%-2',
-        height: 6,
+        top: 'top',
+        left: 'left',
+        width: '100%',
+        height: '100%-4',
         keys: true,
         border: 'line',
         scrollable: true,
@@ -511,7 +542,7 @@ function install_logWindow() {
 
         var str = format.apply(null, arguments);
         lines = str.split("\n");
-        lines.forEach(function(str) {
+        lines.forEach(function (str) {
             logWindow.addItem(str);
         });
         logWindow.select(logWindow.items.length - 1);
@@ -519,33 +550,101 @@ function install_logWindow() {
         //xx   screen.render();
     };
 
-    screen.append(logWindow);
+    area2.append(logWindow);
 
-    screen.key(['i'], function (ch, key) {
-        console.log("setting focus to info");
-        logWindow.focus();
+    var menuBar = blessed.listbar({
+        parent: area2,
+        top: '100%-2',
+        left: 'left',
+        width: '100%',
+        height: 2,
+        keys: true,
+        style: {
+            prefix: {
+                fg: 'white'
+            }
+        },
+        //xx label: ' {bold}{cyan-fg}Info{/cyan-fg}{/bold}',
+        //xx border: 'line',
+        bg: 'cyan'
     });
 
-    logWindow.key(['c'],function(ch,key){
-        logWindow.clearItems();
-        logWindow.screen.render();
+
+    area2.append(menuBar);
+    menuBar.setItems({
+
+        'Monitor': {
+            //xx prefix: 'M',
+            keys: ['m'],
+            callback: function () {
+                var node = tree.items[tree.selected];
+                if (node.monitoredItem) {
+                    console.log(" Already monitoring ", node.node.nodeId.toString());
+                    return;
+                }
+                monitor_item(node);
+            }
+        },
+        'Exit': {
+            keys: ['C-c','escape'],
+            callback: function () {
+                return process.exit(0);
+            }
+        },
+        'Next': {
+            keys: ['tab'],
+            callback: function () {
+                console.log("next tab");
+            }
+        },
+
+        // screen.key(['l'], function (ch, key) {
+        'Tree': {
+            keys: ['t'],
+            callback: function () {
+                tree.focus();
+            }
+        },
+        'Attributes': {
+            keys: ['l'],
+            callback: function () {
+                console.log("setting focus to list");
+                attributeList.focus();
+            }
+
+        },
+        'Info': {
+            keys: ['i'],
+            callback: function () {
+                console.log("setting focus to info");
+                logWindow.focus();
+            }
+        },
+        'Clear': {
+            keys: ['c'],
+            callback: function () {
+                logWindow.clearItems();
+                logWindow.screen.render();
+            }
+        },
+        'Unmonitor': {
+            keys: ['u'],
+            callback: function () {
+                // do do
+            }
+        }
+
     });
 }
 
-install_logWindow();
+
 install_address_space_explorer();
 //xx install_graphWindow();
+install_attributeList();
 install_monitoredItemsWindow();
 
-// Quit on Escape, q, or Control-C.
-screen.key([/*'escape',*/ 'C-c'], function (ch, key) {
-    return process.exit(0);
-});
+install_logWindow();
 
-screen.key(['l'], function (ch, key) {
-    console.log("setting focus to list");
-    attributeList.focus();
-});
 
 // Render the screen.
 screen.render();

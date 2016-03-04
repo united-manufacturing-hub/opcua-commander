@@ -1,3 +1,5 @@
+"use strict";
+
 require("colors");
 var _ = require("underscore");
 var assert = require("assert");
@@ -16,9 +18,76 @@ var DataTypeIdsToString = _.invert(opcua.DataTypeIds);
 var NodeClassToString = _.invert(opcua.NodeClass);
 
 
+
+
+
+var argv = require('yargs')
+    .wrap(132)
+
+    .demand("endpoint")
+    .string("endpoint")
+    .describe("endpoint", "the end point to connect to ")
+
+    .string("securityMode")
+    .describe("securityMode", "the security mode")
+
+    .string("securityPolicy")
+    .describe("securityPolicy", "the policy mode")
+
+    .string("userName")
+    .describe("userName", "specify the user name of a UserNameIdentityToken ")
+
+    .string("password")
+    .describe("password", "specify the password of a UserNameIdentityToken")
+
+    .string("node")
+    .describe("node","the nodeId of the value to monitor")
+
+    .string("history")
+    .describe("history","make an historical read")
+
+    .alias('e', 'endpoint')
+    .alias('s', 'securityMode')
+    .alias('P', 'securityPolicy')
+    .alias("u", 'userName')
+    .alias("p", 'password')
+    .alias("n", 'node')
+    .alias("t", 'timeout')
+
+    .example("opcua-commander  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
+    .example("opcua-commander  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
+    .example("opcua-commander  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"")
+
+    .argv;
+
+
+var securityMode = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
+if (!securityMode) {
+    throw new Error("Invalid Security mode , should be " + opcua.MessageSecurityMode.enums.join(" "));
+}
+
+var securityPolicy = opcua.SecurityPolicy.get(argv.securityPolicy || "None");
+if (!securityPolicy) {
+    throw new Error("Invalid securityPolicy , should be " + opcua.SecurityPolicy.enums.join(" "));
+}
+
+var monitored_node = argv.node || "ns=1;s=PumpSpeed";
+
+
+var endpointUrl = argv.endpoint || "opc.tcp://localhost:26543";
+
+if (!endpointUrl) {
+    require('yargs').showHelp();
+    return;
+}
+
+
+
+
+
+
 var client = new opcua.OPCUAClient();
 
-var endpoint = "opc.tcp://localhost:26543";
 var g_session = null;
 
 var populateTree = function () {
@@ -39,7 +108,7 @@ function create_subscription() {
     g_subscription = new opcua.ClientSubscription(g_session, parameters);
 
 }
-client.connect(endpoint, function () {
+client.connect(endpointUrl, function () {
 
     client.createSession(function (err, session) {
         if (!err) {
@@ -317,7 +386,7 @@ function install_attributeList() {
 }
 
 function d(dataValue) {
-    if (!dataValue.value) {
+    if (!dataValue.value || dataValue.value.value === null) {
         return "<???> : " + dataValue.statusCode.toString();
     }
     switch (dataValue.value.arrayType) {
@@ -332,6 +401,9 @@ function d(dataValue) {
 
 function toString1(attribute, dataValue) {
 
+    if (!dataValue.value.hasOwnProperty("value")) {
+        return "<null>";
+    }
     switch (attribute) {
         case opcua.AttributeIds.DataType:
             return DataTypeIdsToString[dataValue.value.value.value] + " (" + dataValue.value.value.toString() + ")";
@@ -536,7 +608,8 @@ function install_logWindow() {
         }
     });
 
-    console_log = console.log;
+    var lines;
+    var console_log = console.log;
     var format = require("util").format;
     console.log = function () {
 
@@ -649,3 +722,6 @@ install_logWindow();
 // Render the screen.
 screen.render();
 console.log(" Welcome to Node-OPCUA CLI".red, "  Client".green);
+console.log("   endpoint url   = ".cyan, endpointUrl.toString());
+console.log("   securityMode   = ".cyan, securityMode.toString());
+console.log("   securityPolicy = ".cyan, securityPolicy.toString());

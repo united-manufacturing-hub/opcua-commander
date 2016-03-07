@@ -82,11 +82,13 @@ if (!endpointUrl) {
 }
 
 
-
-
-
-
-var client = new opcua.OPCUAClient();
+var options = {
+    securityMode: securityMode,
+    securityPolicy: securityPolicy,
+    //xx serverCertificate: serverCertificate,
+    defaultSecureTokenLifetime: 40000
+};
+var client = new opcua.OPCUAClient(options);
 
 var g_session = null;
 
@@ -108,9 +110,21 @@ function create_subscription() {
     g_subscription = new opcua.ClientSubscription(g_session, parameters);
 
 }
+
+
 client.connect(endpointUrl, function () {
 
-    client.createSession(function (err, session) {
+    var userIdentity = null; // anonymous
+    if (argv.userName && argv.password) {
+
+        userIdentity = {
+            userName: argv.userName,
+            password: argv.password
+        };
+
+    }
+
+    client.createSession(userIdentity,function (err, session) {
         if (!err) {
             g_session = session;
             create_subscription();

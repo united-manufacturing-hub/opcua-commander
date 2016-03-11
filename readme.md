@@ -1,5 +1,5 @@
 
-# CLI NodeOPCUA CLI
+# CLI OPCUA Client with NodeOPCUA
 
 
 

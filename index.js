@@ -189,7 +189,7 @@ function monitor_item(treeItem) {
 
     monitoredItem.on("changed", function (dataValue) {
 
-        console.log(" value ", node.browseName, node.nodeId.toString(), " changed to ", dataValue.value.toString().green)
+        //console.log(" value ", node.browseName, node.nodeId.toString(), " changed to ", dataValue.value.toString().green)
         if (dataValue.value.value.toFixed) {
             node.valueAsString = w(dataValue.value.value.toFixed(3), 16);
         } else {
@@ -205,6 +205,38 @@ function monitor_item(treeItem) {
         monitoredItemsList.render();
     });
 
+}
+
+function unmonitor_item(treeItem) {
+    var node = treeItem.node;
+    var browseName = treeItem.browseName || node.nodeId.toString();
+
+    // teminate subscription
+    node.monitoredItem.terminate();
+  
+    var index = -1
+    monitoredItemsListData.forEach(function(entry, i) {
+      if (entry[1] == node.nodeId.toString()) {
+        index = i;
+      }
+    });
+    if (index > -1) {  
+      monitoredItemsListData.splice(index, 1);
+    }
+    
+    node.monitoredItem = null; 
+    
+    if (monitoredItemsListData.length > 0) {
+      monitoredItemsList.setRows(monitoredItemsListData);
+    } else {
+      // when using setRows with empty array, the view does not update.
+      // setting an empty row.
+      var empty = [[" "]];
+      monitoredItemsList.setRows(empty);
+    }
+    
+    monitoredItemsList.render();
+     
 }
 
 /**
@@ -719,7 +751,12 @@ function install_logWindow() {
         'Unmonitor': {
             keys: ['u'],
             callback: function () {
-                // do do
+                var treeItem = tree.items[tree.selected];
+                if (!treeItem.node.monitoredItem) {
+                    console.log(treeItem.node.nodeId.toString(), " was not being monitored");
+                    return;
+                }
+                unmonitor_item(treeItem);
             }
         }
 

@@ -189,7 +189,7 @@ function monitor_item(treeItem) {
 
     monitoredItem.on("changed", function (dataValue) {
 
-        //console.log(" value ", node.browseName, node.nodeId.toString(), " changed to ", dataValue.value.toString().green)
+        console.log(" value ", node.browseName, node.nodeId.toString(), " changed to ", dataValue.value.toString().green)
         if (dataValue.value.value.toFixed) {
             node.valueAsString = w(dataValue.value.value.toFixed(3), 16);
         } else {

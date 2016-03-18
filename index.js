@@ -464,6 +464,8 @@ function fill_attributesRegion(node) {
             }
             attributeList.setItems(makeItems(attr));
             attributeList.screen.render();
+        } else {
+            console.log("#readAllAttributes returned ",err.message);
         }
     })
 }
@@ -664,12 +666,12 @@ function install_logWindow() {
             //xx prefix: 'M',
             keys: ['m'],
             callback: function () {
-                var node = tree.items[tree.selected];
-                if (node.monitoredItem) {
-                    console.log(" Already monitoring ", node.node.nodeId.toString());
+                var treeItem = tree.items[tree.selected];
+                if (treeItem.node.monitoredItem) {
+                    console.log(" Already monitoring ", treeItem.node.nodeId.toString());
                     return;
                 }
-                monitor_item(node);
+                monitor_item(treeItem);
             }
         },
         'Exit': {

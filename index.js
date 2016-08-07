@@ -274,20 +274,15 @@ function expand_opcua_node(node, callback) {
         {
             nodeId: node.nodeId,
             referenceTypeId: "Organizes",
+            includeSubtypes: true,
             browseDirection: opcua.browse_service.BrowseDirection.Forward,
             resultMask: 0x3f
 
         },
         {
             nodeId: node.nodeId,
-            referenceTypeId: "HasProperty",
-            browseDirection: opcua.browse_service.BrowseDirection.Forward,
-            resultMask: 0x3f
-
-        },
-        {
-            nodeId: node.nodeId,
-            referenceTypeId: "HasComponent",
+            referenceTypeId: "Aggregates",
+            includeSubtypes: true,
             browseDirection: opcua.browse_service.BrowseDirection.Forward,
             resultMask: 0x3f
 
@@ -315,18 +310,7 @@ function expand_opcua_node(node, callback) {
             for (i = 0; i < result.references.length; i++) {
                 var ref = result.references[i];
                 children.push(new TreeItem({
-                    arrow: "╙p-> ",
-                    browseName: ref.browseName.toString(),
-                    nodeId: ref.nodeId,
-                    class: ref.class,
-                    children: expand_opcua_node
-                }));
-            }
-            result = results[2];
-            for (i = 0; i < result.references.length; i++) {
-                var ref = result.references[i];
-                children.push(new TreeItem({
-                    arrow: "╙c-> ",
+                    arrow: "+--> ",
                     browseName: ref.browseName.toString(),
                     nodeId: ref.nodeId,
                     class: ref.class,

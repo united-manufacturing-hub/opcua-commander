@@ -1,6 +1,6 @@
 {
   "name": "opcua-commander",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "OPCUA CLI client",
   "main": "index.js",
   "keywords": [
@@ -35,7 +35,6 @@
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.5.5",
     "colors": "^1.1.2",
-    "node-opcua": "0.0.57",
     "node-opcua": "0.0.60",
     "underscore": "^1.8.3",
     "yargs": "^6.3.0"

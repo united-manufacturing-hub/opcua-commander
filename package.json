@@ -31,7 +31,7 @@
     "url": "https://github.com/node-opcua/opcua-commander/issues"
   },
   "dependencies": {
-    "async": "^2.1.2",
+    "async": "^2.1.4",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.5.5",
     "colors": "^1.1.2",

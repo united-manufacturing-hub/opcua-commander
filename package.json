@@ -35,7 +35,7 @@
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.5.5",
     "colors": "^1.1.2",
-    "node-opcua": "0.0.60",
+    "node-opcua": "0.0.61",
     "underscore": "^1.8.3",
     "yargs": "^6.3.0"
   }

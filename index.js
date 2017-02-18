@@ -431,7 +431,7 @@ function d(dataValue) {
 
 function toString1(attribute, dataValue) {
 
-    if (!dataValue.value  || !dataValue.value.hasOwnProperty("value")) {
+    if (!dataValue || !dataValue.value  || !dataValue.value.hasOwnProperty("value")) {
         return "<null>";
     }
     switch (attribute) {

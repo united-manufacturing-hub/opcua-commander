@@ -43,6 +43,9 @@ const argv = require("yargs")
 .string("history")
 .describe("history", "make an historical read")
 
+.boolean("verbose")
+.describe("verbose", "display extra information")
+
 .alias("e", "endpoint")
 .alias("s", "securityMode")
 .alias("P", "securityPolicy")
@@ -50,6 +53,7 @@ const argv = require("yargs")
 .alias("p", "password")
 .alias("n", "node")
 .alias("t", "timeout")
+.alias("v", "verbose")
 
 .example("opcua-commander  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
 .example("opcua-commander  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
@@ -83,7 +87,62 @@ const options = {
     //xx serverCertificate: serverCertificate,
     defaultSecureTokenLifetime: 40000
 };
+
+const data = {
+    reconnectionCount: 0,
+    tokenRenewalCount: 0,
+    receivedBytes: 0,
+    sentBytes: 0,
+    sentChunks: 0,
+    receivedChunks:0,
+    backoffCount:0,
+    transactionCount:0,
+};
+
 const client = new opcua.OPCUAClient(options);
+
+client.on("send_request",function() {
+    data.transactionCount++;
+});
+
+client.on("send_chunk", function (chunk) {
+    data.sentBytes += chunk.length;
+    data.sentChunks++;
+});
+
+client.on("receive_chunk", function (chunk) {
+    data.receivedBytes += chunk.length;
+    data.receivedChunks++;
+});
+
+client.on("backoff", function (number, delay) {
+    data.backoffCount+=1;
+    console.log(chalk.yellow(`backoff  attempt #${number} retrying in ${delay/1000.0} seconds`));
+});
+
+client.on("start_reconnection", function () {
+    console.log(chalk.red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting reconnection !!!!!!!!!!!!!!!!!!! "+ endpointUrl));
+});
+
+client.on("connection_reestablished", function () {
+    console.log(chalk.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!! "+ endpointUrl));
+    data.reconnectionCount++;
+});
+
+// monitoring des lifetimes
+client.on("lifetime_75", function (token) {
+    if (argv.verbose) {
+        console.log(chalk.red("received lifetime_75 on "+ endpointUrl));
+    }
+});
+
+client.on("security_token_renewed", function () {
+    data.tokenRenewalCount += 1;
+    if (argv.verbose) {
+        console.log(chalk.green(" security_token_renewed on " + endpointUrl));
+    }
+});
+
 
 let g_session = null;
 
@@ -108,31 +167,35 @@ function create_subscription() {
 }
 
 
-client.connect(endpointUrl, function () {
+function doDonnect(callback) {
+    console.log("connecting to ....",endpointUrl);
+    client.connect(endpointUrl, function () {
+        console.log("connected to ....",endpointUrl);
+        let userIdentity = null; // anonymous
+        if (argv.userName && argv.password) {
 
-    let userIdentity = null; // anonymous
-    if (argv.userName && argv.password) {
+            userIdentity = {
+                userName: argv.userName,
+                password: argv.password
+            };
 
-        userIdentity = {
-            userName: argv.userName,
-            password: argv.password
-        };
-
-    }
-
-    client.createSession(userIdentity, function (err, session) {
-        if (!err) {
-            g_session = session;
-            create_subscription();
-            populateTree();
-        } else {
-            console.log(" Cannot create session ", err.toString());
-            process.exit(-1);
         }
+        client.createSession(userIdentity, function (err, session) {
+            if (!err) {
+                g_session = session;
+                create_subscription();
+                populateTree();
+            } else {
+                console.log(" Cannot create session ", err.toString());
+                process.exit(-1);
+            }
 
-        //xx callback(err);
+            //xx callback(err);
+        });
     });
-});
+
+
+}
 
 /**
  *
@@ -140,13 +203,18 @@ client.connect(endpointUrl, function () {
  * @param callback.err {Error}
  */
 function disconnect(callback) {
-    g_session.close(function () {
+    if (!g_session) {
         client.disconnect(function (err) {
             callback(err);
         });
-    });
+    } else {
+        g_session.close(function () {
+            client.disconnect(function (err) {
+                callback(err);
+            });
+        });
+    }
 }
-
 
 // Create a screen object.
 const screen = blessed.screen({
@@ -534,7 +602,7 @@ function install_address_space_explorer() {
         left: "left",
         width: "40%",
         height: "100%",
-//xx    keys: true,
+        keys: true,
         vi: true,
         mouse: true,
         border: "line",
@@ -640,7 +708,6 @@ function install_logWindow() {
 
     area2.append(menuBar);
     menuBar.setItems({
-
         "Monitor": {
             //xx prefix: "M",
             keys: ["m"],
@@ -711,6 +778,18 @@ function install_logWindow() {
                 }
                 unmonitor_item(treeItem);
             }
+        },
+        "Stat": {
+            keys: ["s"],
+            callback: function(){
+                console.log("----------------------------------------------------------------------------");
+                console.log(chalk.green("     transaction count : ",chalk.yellow(data.transactionCount)));
+                console.log(chalk.green("            sent bytes : ",chalk.yellow(data.sentBytes)));
+                console.log(chalk.green("        received bytes : ",chalk.yellow(data.receivedBytes)));
+                console.log(chalk.green("   token renewal count : ",chalk.yellow(data.tokenRenewalCount)));
+                console.log(chalk.green("    reconnection count : ",chalk.yellow(data.reconnectionCount)));
+
+            }
         }
 
     });
@@ -727,9 +806,13 @@ install_logWindow();
 
 // Render the screen.
 screen.render();
-const version =  require("./package.json").version;
+const version = require("./package.json").version;
 
 console.log(chalk.green(" Welcome to Node-OPCUA Commander ") + version);
 console.log(chalk.cyan("   endpoint url   = "), endpointUrl.toString());
 console.log(chalk.cyan("   securityMode   = "), securityMode.toString());
 console.log(chalk.cyan("   securityPolicy = "), securityPolicy.toString());
+
+doDonnect(function() {
+
+});

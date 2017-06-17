@@ -1,6 +1,6 @@
 {
   "name": "opcua-commander",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "OPCUA CLI client",
   "main": "index.js",
   "keywords": [
@@ -31,12 +31,12 @@
     "url": "https://github.com/node-opcua/opcua-commander/issues"
   },
   "dependencies": {
-    "async": "^2.1.4",
+    "async": "^2.4.1",
     "blessed": "^0.1.81",
-    "blessed-contrib": "^4.5.5",
+    "blessed-contrib": "^4.7.5",
     "colors": "^1.1.2",
-    "node-opcua": "0.0.64",
+    "node-opcua": "0.0.65",
     "underscore": "^1.8.3",
-    "yargs": "^6.3.0"
+    "yargs": "^8.0.2"
   }
 }

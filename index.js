@@ -6,13 +6,11 @@ const assert = require("assert");
 const util = require("util");
 const blessed = require("blessed");
 const chalk = require("chalk");
-
+const path = require("path");
 const Tree = require("./widget_tree").Tree;
-const opcua = require("node-opcua");
 
-
-const NodeClass = require("node-opcua/lib/datamodel/nodeclass").NodeClass;
-opcua.NodeClass = NodeClass;
+const opcua = require("node-opcua-client");
+const NodeClass = opcua.NodeClass;
 const attributeIdtoString = _.invert(opcua.AttributeIds);
 const DataTypeIdsToString = _.invert(opcua.DataTypeIds);
 //xx const NodeClassToString = _.invert(opcua.NodeClass);
@@ -81,11 +79,15 @@ if (!endpointUrl) {
 }
 
 
+const certificateFile = path.join(__dirname,"certificates","client_cert_2048.pem");
+const privateKeyFile  = path.join(__dirname,"certificates","PKI/own/private/private_key.pem" );
 const options = {
     securityMode: securityMode,
     securityPolicy: securityPolicy,
     //xx serverCertificate: serverCertificate,
-    defaultSecureTokenLifetime: 40000
+    defaultSecureTokenLifetime: 40000,
+    certificateFile: certificateFile,
+    privateKeyFile: privateKeyFile
 };
 
 const data = {

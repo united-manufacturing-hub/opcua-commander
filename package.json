@@ -1,6 +1,6 @@
 {
   "name": "opcua-commander",
-  "version": "0.1.12",
+  "version": "0.1.13",
   "description": "OPCUA CLI client",
   "main": "index.js",
   "keywords": [

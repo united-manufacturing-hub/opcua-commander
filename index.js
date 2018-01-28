@@ -549,6 +549,7 @@ function toString1(attribute, dataValue) {
     }
 }
 
+const attributeKeys = Object.keys( opcua.AttributeIds).filter((x)=>x!=="INVALID");
 
 function fill_attributesRegion(node) {
 
@@ -567,26 +568,28 @@ function fill_attributesRegion(node) {
 
     }
 
-    g_session.readAllAttributes(node.nodeId, function (err, nodesToRead, dataValues) {
+    const nodesToRead = attributeKeys.map((attr)=> ({ nodeId: node.nodeId, attributeId: opcua.AttributeIds[attr]}));
 
-        if (!err) {
 
-            for (let i = 0; i < nodesToRead.length; i++) {
-
-                const nodeToRead = nodesToRead[i];
-                const dataValue = dataValues[i];
-
-                if (dataValue.statusCode !== opcua.StatusCodes.Good) {
-                    continue;
-                }
-                const s = toString1(nodeToRead.attributeId, dataValue);
-                append_text(attributeIdtoString[nodeToRead.attributeId], s, attr);
-            }
-            attributeList.setItems(makeItems(attr));
-            attributeList.screen.render();
-        } else {
+    g_session.read(nodesToRead,function(err,dataValues){
+        if (err)  {
             console.log("#readAllAttributes returned ", err.message);
+            return;
         }
+
+        for (let i = 0; i < nodesToRead.length; i++) {
+
+            const nodeToRead = nodesToRead[i];
+            const dataValue = dataValues[i];
+
+            if (dataValue.statusCode !== opcua.StatusCodes.Good) {
+                continue;
+            }
+            const s = toString1(nodeToRead.attributeId, dataValue);
+            append_text(attributeIdtoString[nodeToRead.attributeId], s, attr);
+        }
+        attributeList.setItems(makeItems(attr));
+        attributeList.screen.render();
     });
 }
 

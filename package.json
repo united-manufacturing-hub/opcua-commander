@@ -32,13 +32,13 @@
     "url": "https://github.com/node-opcua/opcua-commander/issues"
   },
   "dependencies": {
-    "async": "^2.5.0",
+    "async": "^2.6.0",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.5",
-    "chalk": "^2.1.0",
+    "chalk": "^2.3.0",
     "colors": "^1.1.2",
-    "node-opcua-client": "0.1.0-5",
+    "node-opcua-client": "0.2.0",
     "underscore": "^1.8.3",
-    "yargs": "^8.0.2"
+    "yargs": "^11.0.0"
   }
 }

@@ -347,30 +347,33 @@ function unmonitor_item(treeItem) {
     const node = treeItem.node;
 
     // terminate subscription
-    node.monitoredItem.terminate();
+    node.monitoredItem.terminate(function() {
 
-    let index = -1;
-    monitoredItemsListData.forEach(function (entry, i) {
-        if (entry[1] == node.nodeId.toString()) {
-            index = i;
+        let index = -1;
+        monitoredItemsListData.forEach(function (entry, i) {
+            if (entry[1] == node.nodeId.toString()) {
+                index = i;
+            }
+        });
+        if (index > -1) {
+            monitoredItemsListData.splice(index, 1);
         }
+
+        node.monitoredItem = null;
+
+        if (monitoredItemsListData.length > 0) {
+            monitoredItemsList.setRows(monitoredItemsListData);
+        } else {
+            // when using setRows with empty array, the view does not update.
+            // setting an empty row.
+            const empty = [[" "]];
+            monitoredItemsList.setRows(empty);
+        }
+
+        monitoredItemsList.render();
+
     });
-    if (index > -1) {
-        monitoredItemsListData.splice(index, 1);
-    }
 
-    node.monitoredItem = null;
-
-    if (monitoredItemsListData.length > 0) {
-        monitoredItemsList.setRows(monitoredItemsListData);
-    } else {
-        // when using setRows with empty array, the view does not update.
-        // setting an empty row.
-        const empty = [[" "]];
-        monitoredItemsList.setRows(empty);
-    }
-
-    monitoredItemsList.render();
 
 }
 
@@ -681,6 +684,7 @@ function install_logWindow() {
 
     let lines;
     const format = util.format;
+
     console.log = function () {
 
         const str = format.apply(null, arguments);
@@ -726,7 +730,7 @@ function install_logWindow() {
             }
         },
         "Exit": {
-            keys: ["C-c", "escape"],
+            keys: ["q"], //["C-c", "escape"],
             callback: function () {
                 console.log(chalk.red(" disconnecting .... "));
                 disconnect(function () {
@@ -737,12 +741,12 @@ function install_logWindow() {
                 });
             }
         },
-        "Next": {
-            keys: ["tab"],
-            callback: function () {
-                console.log("next tab");
-            }
-        },
+        //xx "Next": {
+        //xx     keys: ["tab"],
+        //xx     callback: function () {
+        //xx        console.log("next tab (use t/i/l instead)");
+        //xx    }
+        //xx },
 
         // screen.key(["l"], function (ch, key) {
         "Tree": {
@@ -757,7 +761,6 @@ function install_logWindow() {
                 console.log("setting focus to list");
                 attributeList.focus();
             }
-
         },
         "Info": {
             keys: ["i"],

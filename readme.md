@@ -23,3 +23,10 @@ https://raw.githubusercontent.com/node-opcua/opcua-commander/master/docs/demo.gi
     
     
     
+### install on ubuntu
+
+if you have EACCES error on linux,
+
+     $ npm install -g opcua-commander --unsafe-perm=true --allow-root
+     $ sudo npm install -g opcua-commander --unsafe-perm=true --allow-root
+     

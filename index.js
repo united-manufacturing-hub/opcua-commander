@@ -82,6 +82,9 @@ if (!endpointUrl) {
 const certificateFile = path.join(__dirname,"certificates","client_cert_2048.pem");
 const privateKeyFile  = path.join(__dirname,"certificates","client_key_2048.pem" );
 const options = {
+
+    endpoint_must_exist: false,
+
     securityMode: securityMode,
     securityPolicy: securityPolicy,
     //xx serverCertificate: serverCertificate,
@@ -171,7 +174,15 @@ function create_subscription() {
 
 function doDonnect(callback) {
     console.log("connecting to ....",endpointUrl);
-    client.connect(endpointUrl, function () {
+    client.connect(endpointUrl, function (err) {
+        if (err) {
+            console.log(" Cannot connect", err.toString());
+            console.log(chalk.red("  exiting"));
+            setTimeout(function () {
+                return process.exit(-1);
+            }, 5000);
+            return;
+        }
         console.log("connected to ....",endpointUrl);
         let userIdentity = null; // anonymous
         if (argv.userName && argv.password) {

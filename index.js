@@ -157,7 +157,7 @@ function create_subscription() {
 
     assert(g_session);
     const parameters = {
-        requestedPublishingInterval: 100,
+        requestedPublishingInterval: 500,
         requestedLifetimeCount: 1000,
         requestedMaxKeepAliveCount: 12,
         maxNotificationsPerPublish: 100,
@@ -189,7 +189,10 @@ function doDonnect(callback) {
                 populateTree();
             } else {
                 console.log(" Cannot create session ", err.toString());
-                process.exit(-1);
+                console.log(chalk.red("  exiting"));
+                setTimeout(function () {
+                    return process.exit(-1);
+                }, 5000);
             }
 
             //xx callback(err);

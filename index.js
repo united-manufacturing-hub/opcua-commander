@@ -15,57 +15,67 @@ const attributeIdtoString = _.invert(opcua.AttributeIds);
 const DataTypeIdsToString = _.invert(opcua.DataTypeIds);
 //xx const NodeClassToString = _.invert(opcua.NodeClass);
 
+const attributeKeys = Object.keys(opcua.AttributeIds).filter((x) => x !== "INVALID" && x[0].match(/[a-zA-Z]/));
 
 const argv = require("yargs")
-.wrap(132)
+    .wrap(132)
 
-.demand("endpoint")
-.string("endpoint")
-.describe("endpoint", "the end point to connect to ")
+    .demand("endpoint")
+    .string("endpoint")
+    .describe("endpoint", "the end point to connect to ")
 
-.string("securityMode")
-.describe("securityMode", "the security mode")
+    .string("securityMode")
+    .describe("securityMode", "the security mode")
 
-.string("securityPolicy")
-.describe("securityPolicy", "the policy mode")
+    .string("securityPolicy")
+    .describe("securityPolicy", "the policy mode")
 
-.string("userName")
-.describe("userName", "specify the user name of a UserNameIdentityToken ")
+    .string("userName")
+    .describe("userName", "specify the user name of a UserNameIdentityToken ")
 
-.string("password")
-.describe("password", "specify the password of a UserNameIdentityToken")
+    .string("password")
+    .describe("password", "specify the password of a UserNameIdentityToken")
 
-.string("node")
-.describe("node", "the nodeId of the value to monitor")
+    .string("node")
+    .describe("node", "the nodeId of the value to monitor")
 
-.string("history")
-.describe("history", "make an historical read")
+    .string("history")
+    .describe("history", "make an historical read")
 
-.boolean("verbose")
-.describe("verbose", "display extra information")
+    .string("userCertificate")
+    .describe("userCertificate", "X509 user certificate (PEM format)")
 
-.alias("e", "endpoint")
-.alias("s", "securityMode")
-.alias("P", "securityPolicy")
-.alias("u", "userName")
-.alias("p", "password")
-.alias("n", "node")
-.alias("t", "timeout")
-.alias("v", "verbose")
-
-.example("opcua-commander  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=SIGN")
-.example("opcua-commander  -e opc.tcp://localhost:49230 -P=Basic256 -s=SIGN -u JoeDoe -p P@338@rd ")
-.example("opcua-commander  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"")
-
-  .argv;
+    .string("userCertificatePrivateKey")
+    .describe("userCertificatePrivateKey", "X509 private key associated with the user certificate")
 
 
-const securityMode = opcua.MessageSecurityMode.get(argv.securityMode || "NONE");
+    .boolean("verbose")
+    .describe("verbose", "display extra information")
+
+    .alias("e", "endpoint")
+    .alias("s", "securityMode")
+    .alias("P", "securityPolicy")
+    .alias("u", "userName")
+    .alias("p", "password")
+    .alias("n", "node")
+    .alias("t", "timeout")
+    .alias("v", "verbose")
+    .alias("c", "userCertificate")
+    .alias("x", "userCertificatePrivateKey")
+
+    .example("opcua-commander  --endpoint opc.tcp://localhost:49230 -P=Basic256 -s=Sign")
+    .example("opcua-commander  -e opc.tcp://localhost:49230 -P=Basic256 -s=Sign -u JoeDoe -p P@338@rd ")
+    .example("opcua-commander  --endpoint opc.tcp://localhost:49230  -n=\"ns=0;i=2258\"")
+
+    .argv;
+
+
+const securityMode = opcua.MessageSecurityMode[argv.securityMode || "None"];
 if (!securityMode) {
     throw new Error("Invalid Security mode , should be " + opcua.MessageSecurityMode.enums.join(" "));
 }
 
-const securityPolicy = opcua.SecurityPolicy.get(argv.securityPolicy || "None");
+const securityPolicy = opcua.SecurityPolicy[argv.securityPolicy || "None"];
 if (!securityPolicy) {
     throw new Error("Invalid securityPolicy , should be " + opcua.SecurityPolicy.enums.join(" "));
 }
@@ -79,9 +89,23 @@ if (!endpointUrl) {
 }
 
 
-const certificateFile = path.join(__dirname,"certificates","client_cert_2048.pem");
-const privateKeyFile  = path.join(__dirname,"certificates","client_key_2048.pem" );
-const options = {
+const certificateFile = path.join(__dirname, "certificates", "client_certificate.pem");
+const privateKeyFile = path.join(__dirname, "certificates", "PKI/own/private/private_key.pem");
+
+
+
+const data = {
+    reconnectionCount: 0,
+    tokenRenewalCount: 0,
+    receivedBytes: 0,
+    sentBytes: 0,
+    sentChunks: 0,
+    receivedChunks: 0,
+    backoffCount: 0,
+    transactionCount: 0,
+};
+
+const client = opcua.OPCUAClient.create({
 
     endpoint_must_exist: false,
 
@@ -90,23 +114,13 @@ const options = {
     //xx serverCertificate: serverCertificate,
     defaultSecureTokenLifetime: 40000,
     certificateFile: certificateFile,
-    privateKeyFile: privateKeyFile
-};
+    privateKeyFile: privateKeyFile,
 
-const data = {
-    reconnectionCount: 0,
-    tokenRenewalCount: 0,
-    receivedBytes: 0,
-    sentBytes: 0,
-    sentChunks: 0,
-    receivedChunks:0,
-    backoffCount:0,
-    transactionCount:0,
-};
+    keepSessionAlive: true
 
-const client = new opcua.OPCUAClient(options);
+});
 
-client.on("send_request",function() {
+client.on("send_request", function () {
     data.transactionCount++;
 });
 
@@ -121,23 +135,23 @@ client.on("receive_chunk", function (chunk) {
 });
 
 client.on("backoff", function (number, delay) {
-    data.backoffCount+=1;
+    data.backoffCount += 1;
     console.log(chalk.yellow(`backoff  attempt #${number} retrying in ${delay/1000.0} seconds`));
 });
 
 client.on("start_reconnection", function () {
-    console.log(chalk.red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting reconnection !!!!!!!!!!!!!!!!!!! "+ endpointUrl));
+    console.log(chalk.red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting reconnection !!!!!!!!!!!!!!!!!!! " + endpointUrl));
 });
 
 client.on("connection_reestablished", function () {
-    console.log(chalk.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!! "+ endpointUrl));
+    console.log(chalk.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!! " + endpointUrl));
     data.reconnectionCount++;
 });
 
 // monitoring des lifetimes
 client.on("lifetime_75", function (token) {
     if (argv.verbose) {
-        console.log(chalk.red("received lifetime_75 on "+ endpointUrl));
+        console.log(chalk.red("received lifetime_75 on " + endpointUrl));
     }
 });
 
@@ -156,6 +170,7 @@ let populateTree = function () {
 };
 
 let g_subscription = null;
+
 function create_subscription() {
 
     assert(g_session);
@@ -167,13 +182,23 @@ function create_subscription() {
         publishingEnabled: true,
         priority: 10
     };
-    g_subscription = new opcua.ClientSubscription(g_session, parameters);
+    g_session.createSubscription2(
+        parameters,
+        (err, subscription) => {
+            if (err) {
+                console.log("Cannot create subscription", err.message);
+                return;
+            }
+            g_subscription = subscription;
+            console.log("subscription created");
+        });
+
 
 }
 
 
 function doDonnect(callback) {
-    console.log("connecting to ....",endpointUrl);
+    console.log("connecting to ....", endpointUrl);
     client.connect(endpointUrl, function (err) {
         if (err) {
             console.log(" Cannot connect", err.toString());
@@ -183,9 +208,16 @@ function doDonnect(callback) {
             }, 5000);
             return;
         }
-        console.log("connected to ....",endpointUrl);
+        console.log("connected to ....", endpointUrl);
         let userIdentity = null; // anonymous
         if (argv.userName && argv.password) {
+
+            userIdentity = {
+                userName: argv.userName,
+                password: argv.password
+            };
+
+        } else if (argv.userCertificate && argv.userCertificatePrivateKey) {
 
             userIdentity = {
                 userName: argv.userName,
@@ -196,6 +228,17 @@ function doDonnect(callback) {
         client.createSession(userIdentity, function (err, session) {
             if (!err) {
                 g_session = session;
+
+                g_session.on("session_closed", () => {
+                    console.log(" Warning => Session closed");
+                });
+                g_session.on("keepalive", () => {
+                    console.log("session keepalive");
+                });
+                g_session.on("keepalive_failure", () => {
+                    console.log("session keepalive failure");
+                });
+
                 create_subscription();
                 populateTree();
             } else {
@@ -288,6 +331,7 @@ screen.append(area1);
 screen.append(area2);
 
 let monitoredItemsList = null;
+
 function install_monitoredItemsWindow() {
 
     monitoredItemsList = blessed.listtable({
@@ -318,8 +362,7 @@ function monitor_item(treeItem) {
 
     const node = treeItem.node;
 
-
-    const monitoredItem = g_subscription.monitor({
+    g_subscription.monitor({
         nodeId: node.nodeId,
         attributeId: opcua.AttributeIds.Value
         //, dataEncoding: { namespaceIndex: 0, name:null }
@@ -327,31 +370,34 @@ function monitor_item(treeItem) {
         samplingInterval: 1000,
         discardOldest: true,
         queueSize: 100
-    });
-    // subscription.on("item_added",function(monitoredItem){
-    //xx monitoredItem.on("initialized",function(){ });
-    //xx monitoredItem.on("terminated",function(value){ });
+    }, 
+    opcua.TimestampsToReturn.Both,
+    function (err, monitoredItem) {
 
-
-    node.monitoredItem = monitoredItem;
-
-    const monitoredItemData = [node.browseName, node.nodeId.toString(), "Q"];
-    monitoredItemsListData.push(monitoredItemData);
-    monitoredItemsList.setRows(monitoredItemsListData);
-
-
-    monitoredItem.on("changed", function (dataValue) {
-
-        console.log(" value ", node.browseName, node.nodeId.toString(), " changed to ", chalk.green(dataValue.value.toString()));
-        if (dataValue.value.value.toFixed) {
-            node.valueAsString = w(dataValue.value.value.toFixed(3), 16);
-        } else {
-            node.valueAsString = w(dataValue.value.value.toString(), 16);
+        if (err) {
+            console.log("cannot create monitored item", err.message);
+            return;
         }
 
-        monitoredItemData[2] = node.valueAsString;
+        node.monitoredItem = monitoredItem;
+
+        const monitoredItemData = [node.browseName, node.nodeId.toString(), "Q"];
+        monitoredItemsListData.push(monitoredItemData);
         monitoredItemsList.setRows(monitoredItemsListData);
-        monitoredItemsList.render();
+
+        monitoredItem.on("changed", function (dataValue) {
+
+            console.log(" value ", node.browseName, node.nodeId.toString(), " changed to ", chalk.green(dataValue.value.toString()));
+            if (dataValue.value.value.toFixed) {
+                node.valueAsString = w(dataValue.value.value.toFixed(3), 16);
+            } else {
+                node.valueAsString = w(dataValue.value.value.toString(), 16);
+            }
+
+            monitoredItemData[2] = node.valueAsString;
+            monitoredItemsList.setRows(monitoredItemsListData);
+            monitoredItemsList.render();
+        });
     });
 
 }
@@ -361,7 +407,7 @@ function unmonitor_item(treeItem) {
     const node = treeItem.node;
 
     // terminate subscription
-    node.monitoredItem.terminate(function() {
+    node.monitoredItem.terminate(function () {
 
         let index = -1;
         monitoredItemsListData.forEach(function (entry, i) {
@@ -380,7 +426,9 @@ function unmonitor_item(treeItem) {
         } else {
             // when using setRows with empty array, the view does not update.
             // setting an empty row.
-            const empty = [[" "]];
+            const empty = [
+                [" "]
+            ];
             monitoredItemsList.setRows(empty);
         }
 
@@ -425,12 +473,11 @@ function expand_opcua_node(node, callback) {
 
     const children = [];
 
-    const b = [
-        {
+    const b = [{
             nodeId: node.nodeId,
             referenceTypeId: "Organizes",
             includeSubtypes: true,
-            browseDirection: opcua.browse_service.BrowseDirection.Forward,
+            browseDirection: opcua.BrowseDirection.Forward,
             resultMask: 0x3f
 
         },
@@ -438,10 +485,18 @@ function expand_opcua_node(node, callback) {
             nodeId: node.nodeId,
             referenceTypeId: "Aggregates",
             includeSubtypes: true,
-            browseDirection: opcua.browse_service.BrowseDirection.Forward,
+            browseDirection: opcua.BrowseDirection.Forward,
             resultMask: 0x3f
 
-        }
+        },
+        {
+            nodeId: node.nodeId,
+            referenceTypeId: "HasSubtype",
+            includeSubtypes: true,
+            browseDirection: opcua.BrowseDirection.Forward,
+            resultMask: 0x3f
+        },
+
     ];
 
     g_session.browse(b, function (err, results) {
@@ -472,6 +527,18 @@ function expand_opcua_node(node, callback) {
                     children: expand_opcua_node
                 }));
             }
+            result = results[2];
+            for (let i = 0; i < result.references.length; i++) {
+                const ref = result.references[i];
+                children.push(new TreeItem({
+                    arrow: "§--|> ",
+                    browseName: ref.browseName.toString(),
+                    nodeId: ref.nodeId,
+                    class: ref.class,
+                    children: expand_opcua_node
+                }));
+            }
+
         }
         callback(err, children);
     });
@@ -485,11 +552,13 @@ function w(s, l, c) {
     const filling = Array(25).join(c[0]);
     return (s + filling).substr(0, l);
 }
+
 function makeItems(arr) {
     return arr.map(function (a) {
         return w(a[0], 25, ".") + ": " + w(a[1], attributeList.width - 28);
     });
 }
+
 function install_attributeList() {
 
 
@@ -536,7 +605,11 @@ function toString1(attribute, dataValue) {
         case opcua.AttributeIds.DataType:
             return DataTypeIdsToString[dataValue.value.value.value] + " (" + dataValue.value.value.toString() + ")";
         case opcua.AttributeIds.NodeClass:
-            return NodeClass.get(dataValue.value.value).key + " (" + dataValue.value.value + ")";
+            return NodeClass[dataValue.value.value] + " (" + dataValue.value.value + ")";
+        case opcua.AttributeIds.IsAbstract:
+        case opcua.AttributeIds.Historizing:
+        case opcua.AttributeIds.EventNotifier:
+            return dataValue.value.value ? "true" : "false"
         case opcua.AttributeIds.WriteMask:
         case opcua.AttributeIds.UserWriteMask:
             return " (" + dataValue.value.value + ")";
@@ -544,10 +617,8 @@ function toString1(attribute, dataValue) {
         case opcua.AttributeIds.BrowseName:
         case opcua.AttributeIds.DisplayName:
         case opcua.AttributeIds.Description:
-        case opcua.AttributeIds.EventNotifier:
         case opcua.AttributeIds.ValueRank:
         case opcua.AttributeIds.ArrayDimensions:
-        case opcua.AttributeIds.Historizing:
         case opcua.AttributeIds.Executable:
         case opcua.AttributeIds.UserExecutable:
         case opcua.AttributeIds.MinimumSamplingInterval:
@@ -560,13 +631,12 @@ function toString1(attribute, dataValue) {
             if (!dataValue.value.value) {
                 return "null";
             }
-            return opcua.AccessLevelFlag.get(dataValue.value.value).key + " (" + dataValue.value.value + ")";
+            return opcua.accessLevelFlagToString(dataValue.value.value) + " (" + dataValue.value.value + ")";
         default:
             return dataValueToString(dataValue);
     }
 }
 
-const attributeKeys = Object.keys( opcua.AttributeIds).filter((x)=>x!=="INVALID");
 
 function fill_attributesRegion(node) {
 
@@ -585,11 +655,14 @@ function fill_attributesRegion(node) {
 
     }
 
-    const nodesToRead = attributeKeys.map((attr)=> ({ nodeId: node.nodeId, attributeId: opcua.AttributeIds[attr]}));
+    const nodesToRead = attributeKeys.map((attr) => ({
+        nodeId: node.nodeId,
+        attributeId: opcua.AttributeIds[attr]
+    }));
 
 
-    g_session.read(nodesToRead,function(err,dataValues){
-        if (err)  {
+    g_session.read(nodesToRead, function (err, dataValues) {
+        if (err) {
             console.log("#readAllAttributes returned ", err.message);
             return;
         }
@@ -612,6 +685,7 @@ function fill_attributesRegion(node) {
 
 let refreshTimer = 0;
 let tree;
+
 function install_address_space_explorer() {
 
     tree = new Tree({
@@ -803,13 +877,13 @@ function install_logWindow() {
         },
         "Stat": {
             keys: ["s"],
-            callback: function(){
+            callback: function () {
                 console.log("----------------------------------------------------------------------------");
-                console.log(chalk.green("     transaction count : ",chalk.yellow(data.transactionCount)));
-                console.log(chalk.green("            sent bytes : ",chalk.yellow(data.sentBytes)));
-                console.log(chalk.green("        received bytes : ",chalk.yellow(data.receivedBytes)));
-                console.log(chalk.green("   token renewal count : ",chalk.yellow(data.tokenRenewalCount)));
-                console.log(chalk.green("    reconnection count : ",chalk.yellow(data.reconnectionCount)));
+                console.log(chalk.green("     transaction count : ", chalk.yellow(data.transactionCount)));
+                console.log(chalk.green("            sent bytes : ", chalk.yellow(data.sentBytes)));
+                console.log(chalk.green("        received bytes : ", chalk.yellow(data.receivedBytes)));
+                console.log(chalk.green("   token renewal count : ", chalk.yellow(data.tokenRenewalCount)));
+                console.log(chalk.green("    reconnection count : ", chalk.yellow(data.reconnectionCount)));
 
             }
         }
@@ -835,6 +909,6 @@ console.log(chalk.cyan("   endpoint url   = "), endpointUrl.toString());
 console.log(chalk.cyan("   securityMode   = "), securityMode.toString());
 console.log(chalk.cyan("   securityPolicy = "), securityPolicy.toString());
 
-doDonnect(function() {
+doDonnect(function () {
 
 });

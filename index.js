@@ -697,7 +697,7 @@ let clientAlarms;
 
 function ellipsys(a) {
     if(!a) { return ""; }
-    return a;
+    return a.toString();
     return truncate(a,20,{ position: "middle"});
 }
 function n(a) {
@@ -722,14 +722,14 @@ async function updateAlarmBox() {
             alarm.conditionId.toString(),
             // fields.branchId.value.toString(),
             // ellipsys(alarm.eventId.toString("hex")),
-            isEnabled ? ellipsys(fields.message.value.text) : "-",
+            isEnabled ? ellipsys(fields.message.value) : "-",
             isEnabled ? fields.severity.value + ' (' + fields.lastSeverity.value + ')' : "-",
             (f(fields.enabledState.id.value)) +
             (isEnabled ? f(fields.activeState.id.value): "-") +
             (isEnabled ? f(fields.ackedState.id.value): "-" )+
             (isEnabled ? f(fields.confirmedState.id.value): "-"),
            // (isEnabled ? f(fields.retain.value) : "-"),
-            (isEnabled ? ellipsys(fields.comment.value.text) : "-"),
+            (isEnabled ? ellipsys(fields.comment.value) : "-"),
         ])
 
     }

@@ -11,9 +11,14 @@ const Tree = require("./widget_tree").Tree;
 
 const opcua = require("node-opcua-client");
 const NodeClass = opcua.NodeClass;
+const { StatusCodes } = require("node-opcua-status-code");
 const attributeIdtoString = _.invert(opcua.AttributeIds);
 const DataTypeIdsToString = _.invert(opcua.DataTypeIds);
 //xx const NodeClassToString = _.invert(opcua.NodeClass);
+const truncate = require("cli-truncate");
+const updateNotifier = require("update-notifier");
+const pkg = require('./package.json');
+
 
 const attributeKeys = Object.keys(opcua.AttributeIds).filter((x) => x !== "INVALID" && x[0].match(/[a-zA-Z]/));
 
@@ -85,6 +90,7 @@ const endpointUrl = argv.endpoint || "opc.tcp://localhost:26543";
 const yargs = require("yargs");
 if (!endpointUrl) {
     yargs.showHelp();
+    updateNotifier({pkg}).notify();
     process.exit(0);
 }
 
@@ -203,6 +209,7 @@ function doDonnect(callback) {
         if (err) {
             console.log(" Cannot connect", err.toString());
             console.log(chalk.red("  exiting"));
+            updateNotifier({pkg}).notify();
             setTimeout(function () {
                 return process.exit(-1);
             }, 5000);
@@ -672,7 +679,7 @@ function fill_attributesRegion(node) {
             const nodeToRead = nodesToRead[i];
             const dataValue = dataValues[i];
 
-            if (dataValue.statusCode !== opcua.StatusCodes.Good) {
+            if (dataValue.statusCode !== StatusCodes.Good) {
                 continue;
             }
             const s = toString1(nodeToRead.attributeId, dataValue);
@@ -685,6 +692,101 @@ function fill_attributesRegion(node) {
 
 let refreshTimer = 0;
 let tree;
+let alarmBox;
+let clientAlarms;
+
+function ellipsys(a) {
+    if(!a) { return ""; }
+    return a;
+    return truncate(a,20,{ position: "middle"});
+}
+function n(a) {
+    if (a===null || a === undefined) {
+        return "";
+    }
+    return a.toString();
+}
+function f(flag) {
+    return flag ? "X" : "_";
+}
+async function updateAlarmBox() {
+
+    clientAlarms.purgeUnusedAlarms();
+    const data = [alarmBox.$headers]
+    for(const alarm of clientAlarms.alarms()) {
+
+        const fields = alarm.fields;
+        const isEnabled = fields.enabledState.id.value;
+        data.push([
+            alarm.eventType.toString(),
+            alarm.conditionId.toString(),
+            // fields.branchId.value.toString(),
+            // ellipsys(alarm.eventId.toString("hex")),
+            isEnabled ? ellipsys(fields.message.value.text) : "-",
+            isEnabled ? fields.severity.value + ' (' + fields.lastSeverity.value + ')' : "-",
+            (f(fields.enabledState.id.value)) +
+            (isEnabled ? f(fields.activeState.id.value): "-") +
+            (isEnabled ? f(fields.ackedState.id.value): "-" )+
+            (isEnabled ? f(fields.confirmedState.id.value): "-"),
+           // (isEnabled ? f(fields.retain.value) : "-"),
+            (isEnabled ? ellipsys(fields.comment.value.text) : "-"),
+        ])
+
+    }
+    alarmBox.setRows(data);
+    screen.render();
+}
+function install_alarm_windows() {
+    if (alarmBox) {
+        alarmBox.show();
+        return;
+    }
+    
+    
+    alarmBox = blessed.listtable({
+        parent: area1,
+        fg: "green",
+        // label: "{bold}{cyan-fg}Alarms - Conditions {/cyan-fg}{/bold} ",
+        label: "Alarms - Conditions",
+        top: "top+6",
+        left: "left+2",
+        width: "100%-4",
+        height: "100%-6",
+        keys: true,
+        border: "line",
+        scrollbar: scrollbar,
+        noCellBorders: false,
+        style: _.clone(style)
+    });
+    alarmBox.fg = "green";
+
+    alarmBox.$headers =  ["EventType", "ConditionId", 
+    // "BranchId", 
+    //"EventId",
+    "Message", 
+    "Severity", 
+    "E!AC",
+    //"Enabled?", "Active?",  "Acked?", "Confirmed?", "Retain",
+    "Comment", 
+    ];
+    
+    const data = [ alarmBox.$headers ];
+    
+    alarmBox.setData(data);
+    
+    async function alarmStuff() {
+        assert(g_session);
+        clientAlarms = await opcua.installAlarmMonitoring(g_session);
+        clientAlarms.on("alarmChanged", updateAlarmBox);
+    }
+    alarmStuff();
+    alarmBox.focus();
+
+}
+
+function hide_alarm_windows() {
+    alarmBox.hide();
+}
 
 function install_address_space_explorer() {
 
@@ -886,8 +988,19 @@ function install_logWindow() {
                 console.log(chalk.green("    reconnection count : ", chalk.yellow(data.reconnectionCount)));
 
             }
+        },
+        "Alarm": {
+            keys:["a"],
+            callback: function() {
+                if (alarmBox && alarmBox.visible) {
+                    hide_alarm_windows();    
+                } else {
+                    install_alarm_windows();
+                    alarmBox.show();    
+                }
+                screen.render();
+            }   
         }
-
     });
 }
 

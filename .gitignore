@@ -4,3 +4,5 @@ certificates
 .idea
 .vscode/
 pki/
+build/
+dist/

@@ -1,0 +1,10 @@
+
+/* MVVM*/
+
+export interface Controller {
+
+}
+
+
+
+

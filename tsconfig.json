@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "outDir": "dist",
+    "target": "esnext",  
+    "esModuleInterop": true,
+    "noImplicitAny": true,
+    "module": "commonjs",     
+    "lib": [
+        "es7"
+    ],
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "baseUrl": ".",
+    "paths": {
+       "*": [
+          "node_modules/*",
+      ]
+    },
+  },
+  "files": ["lib/index.ts"]
+, "include": ["lib/**/*.ts"]
+}

@@ -1,14 +1,15 @@
 // exports.TreeOld = require("./lib/widget/TreeOld.js")
 
-const _ = require("underscore");
-const assert = require("assert");
-const chalk = require("chalk");
+import * as _ from "underscore";
+import { assert} from "node-opcua-client"
+import chalk from "chalk";
+import  { Widgets } from "blessed";
+
 const blessed = require("blessed");
-const List = blessed.List;
 
 // some unicode icon characters ►▼◊◌○●□▪▫֎☺◘♦
 
-function toContent(node, isLastChild, parent) {
+function toContent(node: any, isLastChild: boolean, parent: any): any {
 
     if (parent) {
         const sep =  (parent.isLastChild) ? " " : "│";
@@ -29,12 +30,22 @@ function toContent(node, isLastChild, parent) {
 
     return str;
 }
-function dummy(node, callback) {
+function dummy(node: any, callback: (err: Error|null, child:any) => void) {
     callback(null, node.children);
 }
-class Tree extends List {
+export interface Tree extends Widgets.ListElement
+{
+
+}
+
+export class Tree extends blessed.List {
     
-    constructor(options) {
+    private __data: any;
+    private _index_selectedNode: number;
+    private _old_selectedNode : any;
+
+    constructor(options: any) {
+        
         const scrollbar = {
             ch: " ",
             track: {
@@ -60,46 +71,44 @@ class Tree extends List {
         options.border = options.border || "line";
         options.scrollbar = options.scrollbar || scrollbar;
         options.style = options.style || style;
-
         options.keys = true;
 
-        super(options);
+        super(options); 
 
         this.key(["+", "right"], this.expandSelected.bind(this));
         this.key(["-", "left"], this.collapseSelected.bind(this));
 
+        this._index_selectedNode = 0;
     }
 
 
-    _add(node, isLastChild, parent) {
-        const self = this;
+    _add(node: any, isLastChild: boolean, parent: any) {
         node.isLastChild = isLastChild;
-        const item = self.add(toContent(node, isLastChild, parent));
+        const item = this.add(toContent(node, isLastChild, parent)) as any;
         item.node = node;
-        if (self._old_selectedNode === node) {
-            self._index_selectedNode = self.items.length - 1;
+        if (this._old_selectedNode === node) {
+            this._index_selectedNode = this.itemCount - 1;
         }
     }
 
+    get itemCount() { return (this as any).items.length; }
 
-    walk(node, depth) {
+    walk(node: any, depth: number) {
 
-        const self = this;
-
-        if (self.items.length) {
-            self._old_selectedNode = self.items[self.selected].node;
-            assert(self._old_selectedNode);
+        if (this.itemCount) {
+            this._old_selectedNode = this.getSelectedItem().node;
+            assert(this._old_selectedNode);
         }
-        self._index_selectedNode = -1;
+        this._index_selectedNode = -1;
         this.setItems([]);
 
         if (node.name && depth === 0) {
             // root node
             node.depth = 0;
-            self._add(node, true, null);
+            this._add(node, true, null);
         }
 
-        function dumpChildren(node, depth) {
+        function dumpChildren(this: Tree, node: any, depth: number): void {
 
             if (_.isFunction(node.children)) {
                 return;
@@ -114,9 +123,9 @@ class Tree extends List {
                     child.depth = depth + 1;
 
                     isLastChild = (i === node.children.length - 1);
-                    self._add(child, isLastChild, node);
+                    this._add(child, isLastChild, node);
                     if (child.expanded && !_.isFunction(child.children)) {
-                        dumpChildren(child, depth + 1);
+                        dumpChildren.call(this, child, depth + 1);
                     }
 
                 }
@@ -124,39 +133,33 @@ class Tree extends List {
         }
 
         if (node.expanded) {
-            dumpChildren(node, depth);
+            dumpChildren.call(this, node, depth);
         }
-        self._index_selectedNode = self._index_selectedNode >= 0 ? self._index_selectedNode : 0;
-        self.select(self._index_selectedNode);
-
+        this._index_selectedNode = this._index_selectedNode >= 0 ? this._index_selectedNode : 0;
+        this.select(this._index_selectedNode);
     }
 
 
     expandSelected() {
-
-        const self = this;
-        const node = self.items[self.selected].node;
-
-
+        const node = this.getSelectedItem().node;
         if (node.expanded) {
             return;
         }
 
         const populate_children = _.isFunction(node.children) ? node.children : dummy;
-        populate_children(node, function (err, children) {
+        populate_children.call(this, node,  (err: Error|null, children: any) => {
             if (err) {
                 return;
             }
             assert(_.isArray(children));
             node.children = children;
             node.expanded = true;
-            self.setData(self.__data);
+            this.setData(this.__data);
         });
     }
 
     collapseSelected() {
-        const self = this;
-        const node = self.items[self.selected].node;
+        const node = this.getSelectedItem().node;
         if (!node.expanded) {
             return;
         }
@@ -164,13 +167,19 @@ class Tree extends List {
         this.setData(this.__data);
     }
 
-    setData(data) {
-
+    setData(data: any ) {
         this.__data = data;
         this.walk(data, 0);
         this.screen.render();
     }
+    getSelectedItem() {
+        return this.getTreeItemAtPos(this.getSelectedIndex());
+    }
+    private getTreeItemAtPos(selectedIndex: number) {
+        return (this as any).items[selectedIndex];
+    }
+    private getSelectedIndex(): number {
+        return (this as any).selected;
+    }
 }
-
-exports.Tree = Tree;
 

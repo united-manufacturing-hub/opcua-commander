@@ -35,13 +35,14 @@
     "@types/blessed": "^0.1.12",
     "async": "^3.1.0",
     "blessed": "^0.1.81",
-    "blessed-contrib": "^4.8.16",
-    "chalk": "^2.4.2",
+    "blessed-contrib": "^4.8.18",
+    "chalk": "^3.0.0",
     "cli-truncate": "^2.0.0",
-    "node-opcua-client": "^2.1.8",
-    "node-opcua-pki": "^1.5.3",
+    "node-opcua-client": "^2.3.0",
+    "node-opcua-pki": "^1.5.4",
+    "npm-check-updates": "^3.2.1",
     "underscore": "^1.9.1",
     "update-notifier": "^3.0.1",
-    "yargs": "^14.0.0"
+    "yargs": "^14.2.0"
   }
 }

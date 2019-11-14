@@ -1,6 +1,6 @@
 /* eslint no-console: off , no-process-exit: off*/
 import * as  _ from "underscore";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import { Model, makeUserIdentity } from "./model/model";
 import { View } from "./view/view";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-client";
@@ -63,7 +63,7 @@ const argv = require("yargs")
     .argv;
 
 
-const securityMode: MessageSecurityMode = MessageSecurityMode[argv.securityMode || "None"] as any as  MessageSecurityMode;
+const securityMode: MessageSecurityMode = MessageSecurityMode[argv.securityMode || "None"] as any as MessageSecurityMode;
 if (!securityMode) {
     throw new Error("Invalid Security mode , should be " + MessageSecurityMode);
 }
@@ -78,7 +78,7 @@ const endpointUrl = argv.endpoint || "opc.tcp://localhost:26543";
 const yargs = require("yargs");
 if (!endpointUrl) {
     yargs.showHelp();
-    updateNotifier({pkg}).notify();
+    updateNotifier({ pkg }).notify();
     process.exit(0);
 }
 
@@ -86,7 +86,7 @@ if (!endpointUrl) {
 const model = new Model();
 const view = new View(model);
 
-(async ()=> {
+(async () => {
     await model.initialize(endpointUrl, securityMode, securityPolicy);
 
 })();
@@ -98,8 +98,8 @@ console.log(chalk.cyan("   endpoint url   = "), endpointUrl.toString());
 console.log(chalk.cyan("   securityMode   = "), securityMode.toString());
 console.log(chalk.cyan("   securityPolicy = "), securityPolicy.toString());
 
-(()=>{
-    const userIdentity =makeUserIdentity(argv);
+(() => {
+    const userIdentity = makeUserIdentity(argv);
     model.doDonnect(endpointUrl, userIdentity);
 })();
 

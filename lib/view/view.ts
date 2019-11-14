@@ -1,7 +1,7 @@
 import * as blessed from "blessed";
 import * as _ from "underscore";
 import { format, callbackify } from "util";
-import chalk from "chalk";
+import * as chalk from "chalk";
 
 import { TreeItem } from "../widget/tree_item";
 import { ClientAlarmList, resolveNodeId, DataValue, ResultMask } from "node-opcua-client";
@@ -47,7 +47,7 @@ const style = {
 
 
 export function makeItems(arr: any[], width: number): string[] {
-    return arr.map( (a) => {
+    return arr.map((a) => {
         return w(a[0], 25, ".") + ": " + w(a[1], width, " ");
     });
 }
@@ -57,7 +57,7 @@ let refreshTimer: NodeJS.Timeout | null = null;
 
 export class View {
     private monitoredItemsList: any;
-    private $headers: string[]= [];
+    private $headers: string[] = [];
 
     public screen: blessed.Widgets.Screen;
     public area1: blessed.Widgets.BoxElement;
@@ -72,7 +72,7 @@ export class View {
     public model: Model;
 
     constructor(model: Model) {
-        
+
         this.model = model;
 
         // Create a screen object.
@@ -218,12 +218,12 @@ export class View {
         this.area2.append(menuBar);
 
         (menuBar as any).setItems({
-            "Monitor": 
+            "Monitor":
             {
                 //xx prefix: "M",
                 keys: ["m"],
                 callback: () => this._onMonitioredSelectedItem()
-                },
+            },
             "Exit": {
                 keys: ["q"], //["C-c", "escape"],
                 callback: () => this._onExit()
@@ -249,23 +249,23 @@ export class View {
             },
             "Unmonitor": {
                 keys: ["u"],
-                callback: ()=> this._onUnmonitoredSelectedItem()
+                callback: () => this._onUnmonitoredSelectedItem()
             },
             "Stat": {
                 keys: ["s"],
-                callback: ()=> this._onDumpStatistics()
+                callback: () => this._onDumpStatistics()
             },
             "Alarm": {
                 keys: ["a"],
                 callback: this._onToggleAlarmWindows.bind(this)
             },
-          //  "Menu": { keys: ["A-a", "x"], callback: () => this.menuBar.focus() }
+            //  "Menu": { keys: ["A-a", "x"], callback: () => this.menuBar.focus() }
         });
         return menuBar;
     }
 
     private install_address_space_explorer(): Tree {
-    
+
         this.tree = new Tree({
             parent: this.area1,
             tags: true,
@@ -282,19 +282,19 @@ export class View {
             border: "line",
             style: _.clone(style)
         });
-    
+
         //allow control the table with the keyboard
-        this.tree.on("select",  (treeItem: any) => {
+        this.tree.on("select", (treeItem: any) => {
             if (treeItem) {
                 this.fill_attributesRegion(treeItem.node);
             }
         });
-        this.tree.on("keypress",  (ch: any, key: any) => {
+        this.tree.on("keypress", (ch: any, key: any) => {
             if (key.name === "up" || key.name === "down") {
                 if (refreshTimer) {
                     return;
                 }
-                refreshTimer = setTimeout( ()=> {
+                refreshTimer = setTimeout(() => {
 
                     const treeItem = this.tree.getSelectedItem();
                     if (treeItem && treeItem.node) {
@@ -303,11 +303,11 @@ export class View {
                     refreshTimer = null;
                 }, 100);
             }
-    
+
         });
-    
+
         this.area1.append(this.tree);
-    
+
         this.populateTree();
         this.tree.focus();
         return this.tree;
@@ -323,26 +323,26 @@ export class View {
 
     private expand_opcua_node(node: any, callback: () => void) {
 
-        async function  f(this: any, node: any) {
+        async function f(this: any, node: any) {
             try {
-                const children =  await this.model.expand_opcua_node(node);
-                const results =  children.map((c: any) => (
-                    new TreeItem({ ...c, children: this.expand_opcua_node.bind(this)})
+                const children = await this.model.expand_opcua_node(node);
+                const results = children.map((c: any) => (
+                    new TreeItem({ ...c, children: this.expand_opcua_node.bind(this) })
                 ));
-                return results;    
-            } catch(err) {
-               throw new Error("cannot expand");
+                return results;
+            } catch (err) {
+                throw new Error("cannot expand");
             }
         }
-        callbackify(f).call(this, node, callback );
+        callbackify(f).call(this, node, callback);
     }
 
     private async fill_attributesRegion(node: any) {
 
         type ATT = [string, string];
         const attr: ATT[] = [];
-    
-        function append_text(prefix: string, s: string, attr:ATT[]) {
+
+        function append_text(prefix: string, s: string, attr: ATT[]) {
             const a = s.split("\n");
             if (a.length === 1) {
                 attr.push([prefix, s]);
@@ -353,7 +353,7 @@ export class View {
                 }
             }
         }
-    
+
         const attributes = await this.model.readNodeAttributes(node);
         if (attributes.length === 0) {
             return;
@@ -363,9 +363,9 @@ export class View {
         }
         const width = (this.attributeList as any).width - 28;
         this.attributeList.setItems(makeItems(attr, width) as any);
-        this.attributeList.screen.render();    
+        this.attributeList.screen.render();
     }
-    
+
 
     private install_attributeList(): blessed.Widgets.ListElement {
 
@@ -385,21 +385,21 @@ export class View {
             keys: true
         });
         this.area1.append(this.attributeList);
-    
+
         const width = (this.attributeList as any).width - 28;
         this.attributeList.setItems(makeItems([], width) as any);
         return this.attributeList;
     }
-    
+
     private install_alarm_windows() {
-    
+
         if (this.alarmBox) {
             this.alarmBox.show();
             this.alarmBox.focus();
             return;
         }
-        
-        
+
+
         this.alarmBox = blessed.listtable({
             parent: this.area1,
             tags: true,
@@ -416,31 +416,31 @@ export class View {
             noCellBorders: false,
             style: _.clone(style)
         });
-    
-        this.$headers =  ["EventType", "ConditionId", 
-        // "BranchId", 
-        // "EventId",
-        "Message", 
-        "Severity", 
-        //"Enabled?", "Active?",  "Acked?", "Confirmed?", "Retain",
-        "E!AC",
-        "Comment", 
+
+        this.$headers = ["EventType", "ConditionId",
+            // "BranchId", 
+            // "EventId",
+            "Message",
+            "Severity",
+            //"Enabled?", "Active?",  "Acked?", "Confirmed?", "Retain",
+            "E!AC",
+            "Comment",
         ];
-        
-        const data = [ this.$headers ];
-        
+
+        const data = [this.$headers];
+
         this.alarmBox.setData(data);
-        
+
         this.model.installAlarmMonitoring();
-        this.model.on("alarmChanged",(list: ClientAlarmList) => updateAlarmBox(list,this.alarmBox, this.$headers));
+        this.model.on("alarmChanged", (list: ClientAlarmList) => updateAlarmBox(list, this.alarmBox, this.$headers));
         this.alarmBox.focus();
-    
+
     }
-    
+
     private hide_alarm_windows() {
         this.alarmBox!.hide();
     }
-    
+
     private async _onExit() {
         console.log(chalk.red(" disconnecting .... "));
         await this.model.disconnect();
@@ -458,8 +458,8 @@ export class View {
         }
         this.screen.render();
     }
-    
-    private _onMonitioredSelectedItem () {
+
+    private _onMonitioredSelectedItem() {
         const treeItem = this.tree.getSelectedItem();
         if (treeItem.node.monitoredItem) {
             console.log(" Already monitoring ", treeItem.node.nodeId.toString());
@@ -467,7 +467,7 @@ export class View {
         }
         this.model.monitor_item(treeItem);
     }
-    
+
     private _onUnmonitoredSelectedItem() {
         const treeItem = this.tree.getSelectedItem();
         if (!treeItem.node.monitoredItem) {

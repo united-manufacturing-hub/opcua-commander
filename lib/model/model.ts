@@ -20,7 +20,7 @@ import {
     VariantArrayType,
     BrowseDirection
 } from "node-opcua-client";
-import chalk from "chalk";
+import * as chalk from "chalk";
 import * as path from "path";
 import { w } from "../utils/utils";
 import { EventEmitter } from "events";
@@ -175,7 +175,7 @@ export class Model extends EventEmitter {
             this.subscription = await this.session.createSubscription2(parameters);
             console.log("subscription created");
         }
-        catch(err) {
+        catch (err) {
             console.log("Cannot create subscription");
         }
     }
@@ -221,7 +221,7 @@ export class Model extends EventEmitter {
     public async disconnect(): Promise<void> {
         if (this.session) {
             const session = this.session;
-            this.session  = undefined;
+            this.session = undefined;
             await session.close();
         }
         await this.client!.disconnect();
@@ -320,26 +320,26 @@ export class Model extends EventEmitter {
 
         try {
 
-                const dataValues = await this.session.read(nodesToRead);
+            const dataValues = await this.session.read(nodesToRead);
 
-                const results: any[] = [];
+            const results: any[] = [];
 
-                for (let i = 0; i < nodesToRead.length; i++) {
+            for (let i = 0; i < nodesToRead.length; i++) {
 
-                    const nodeToRead = nodesToRead[i];
-                    const dataValue = dataValues[i];
+                const nodeToRead = nodesToRead[i];
+                const dataValue = dataValues[i];
 
-                    if (dataValue.statusCode !== StatusCodes.Good) {
-                        continue;
-                    }
-                    const s = toString1(nodeToRead.attributeId, dataValue);
-                    results.push({
-                        attribute: attributeIdtoString[nodeToRead.attributeId],
-                        text: s
-                    });
+                if (dataValue.statusCode !== StatusCodes.Good) {
+                    continue;
                 }
-                return results;
-        } catch(err) {
+                const s = toString1(nodeToRead.attributeId, dataValue);
+                results.push({
+                    attribute: attributeIdtoString[nodeToRead.attributeId],
+                    text: s
+                });
+            }
+            return results;
+        } catch (err) {
             return [];
         }
     }
@@ -405,7 +405,7 @@ export class Model extends EventEmitter {
                         arrow: "+--> ",
                         browseName: ref.browseName.toString(),
                         nodeId: ref.nodeId,
-                        nodeClass: ref.nodeClass  as number,
+                        nodeClass: ref.nodeClass as number,
                     });
                 }
             }
@@ -417,7 +417,7 @@ export class Model extends EventEmitter {
                         arrow: "§--|> ",
                         browseName: ref.browseName.toString(),
                         nodeId: ref.nodeId,
-                        nodeClass: ref.nodeClass  as number,
+                        nodeClass: ref.nodeClass as number,
                     });
                 }
             }
@@ -428,7 +428,7 @@ export class Model extends EventEmitter {
             return [];
         }
     }
-    
+
 }
 
 const attributeIdtoString = _.invert(AttributeIds);

@@ -1,9 +1,9 @@
 // exports.TreeOld = require("./lib/widget/TreeOld.js")
 
 import * as _ from "underscore";
-import { assert} from "node-opcua-client"
-import chalk from "chalk";
-import  { Widgets } from "blessed";
+import { assert } from "node-opcua-client"
+import * as chalk from "chalk";
+import { Widgets } from "blessed";
 
 const blessed = require("blessed");
 
@@ -12,10 +12,10 @@ const blessed = require("blessed");
 function toContent(node: any, isLastChild: boolean, parent: any): any {
 
     if (parent) {
-        const sep =  (parent.isLastChild) ? " " : "│";
+        const sep = (parent.isLastChild) ? " " : "│";
         node.prefix = parent.prefix + sep;
     } else {
-        node.prefix=" ";
+        node.prefix = " ";
     }
 
     const s = (isLastChild) ? "└" : "├";
@@ -30,22 +30,21 @@ function toContent(node: any, isLastChild: boolean, parent: any): any {
 
     return str;
 }
-function dummy(node: any, callback: (err: Error|null, child:any) => void) {
+function dummy(node: any, callback: (err: Error | null, child: any) => void) {
     callback(null, node.children);
 }
-export interface Tree extends Widgets.ListElement
-{
+export interface Tree extends Widgets.ListElement {
 
 }
 
 export class Tree extends blessed.List {
-    
+
     private __data: any;
     private _index_selectedNode: number;
-    private _old_selectedNode : any;
+    private _old_selectedNode: any;
 
     constructor(options: any) {
-        
+
         const scrollbar = {
             ch: " ",
             track: {
@@ -73,7 +72,7 @@ export class Tree extends blessed.List {
         options.style = options.style || style;
         options.keys = true;
 
-        super(options); 
+        super(options);
 
         this.key(["+", "right"], this.expandSelected.bind(this));
         this.key(["-", "left"], this.collapseSelected.bind(this));
@@ -147,7 +146,7 @@ export class Tree extends blessed.List {
         }
 
         const populate_children = _.isFunction(node.children) ? node.children : dummy;
-        populate_children.call(this, node,  (err: Error|null, children: any) => {
+        populate_children.call(this, node, (err: Error | null, children: any) => {
             if (err) {
                 return;
             }
@@ -167,7 +166,7 @@ export class Tree extends blessed.List {
         this.setData(this.__data);
     }
 
-    setData(data: any ) {
+    setData(data: any) {
         this.__data = data;
         this.walk(data, 0);
         this.screen.render();

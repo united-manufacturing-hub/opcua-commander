@@ -45,7 +45,6 @@ const style = {
 };
 
 
-let linesMemory: string[] = [];
 let old_console_log: any;
 
 export function makeItems(arr: any[], width: number): string[] {
@@ -191,7 +190,6 @@ export class View {
             const lines = str.split("\n");
             lines.forEach((str: string) => {
                 logWindow.addItem(str);
-                linesMemory.push(str);
             });
             logWindow.select((logWindow as any).items.length - 1);
 

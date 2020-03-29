@@ -1,9 +1,11 @@
 /* eslint no-console: off , no-process-exit: off*/
+require("source-map-support/register");
 import * as  _ from "underscore";
 import chalk from "chalk";
 import { Model, makeUserIdentity } from "./model/model";
 import { View } from "./view/view";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-client";
+import { makeCertificate } from "./make_certificate";
 
 const truncate = require("cli-truncate");
 const updateNotifier = require("update-notifier");
@@ -83,23 +85,22 @@ if (!endpointUrl) {
 }
 
 
-const model = new Model();
-const view = new View(model);
 
 (async () => {
-    await model.initialize(endpointUrl, securityMode, securityPolicy);
 
-})();
+    const { certificateFile, privateKeyFile } = await makeCertificate();
 
+    const model = new Model();
+    const view = new View(model);
+    await model.initialize(endpointUrl, securityMode, securityPolicy, certificateFile, privateKeyFile);
 
-const version = require("../package.json").version;
-console.log(chalk.green(" Welcome to Node-OPCUA Commander ") + version);
-console.log(chalk.cyan("   endpoint url   = "), endpointUrl.toString());
-console.log(chalk.cyan("   securityMode   = "), securityMode.toString());
-console.log(chalk.cyan("   securityPolicy = "), securityPolicy.toString());
-
-(() => {
+    const version = require("../package.json").version;
+    console.log(chalk.green(" Welcome to Node-OPCUA Commander ") + version);
+    console.log(chalk.cyan("   endpoint url    = "), endpointUrl.toString());
+    console.log(chalk.cyan("   securityMode    = "), securityMode.toString());
+    console.log(chalk.cyan("   securityPolicy  = "), securityPolicy.toString());
+    console.log(chalk.cyan("   Certficate File = "), certificateFile);
     const userIdentity = makeUserIdentity(argv);
     model.doDonnect(endpointUrl, userIdentity);
-})();
 
+})();

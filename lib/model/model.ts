@@ -27,9 +27,6 @@ import { EventEmitter } from "events";
 import { StatusCodes } from "node-opcua-status-code";
 import _ from "underscore";
 
-const certificateFile = path.join(process.cwd(), "certificates", "client_certificate.pem");
-const privateKeyFile = path.join(process.cwd(), "certificates", "PKI/own/private/private_key.pem");
-
 const attributeKeys = Object.keys(AttributeIds).filter((x) => x !== "Invalid" && x[0].match(/[0-9]/)).map((x) => parseInt(x, 10));
 
 const data = {
@@ -98,8 +95,11 @@ export class Model extends EventEmitter {
     public async initialize(
         endpoint: string,
         securityMode: MessageSecurityMode,
-        securityPolicy: SecurityPolicy
+        securityPolicy: SecurityPolicy,
+        certificateFile: string,
+        privateKeyFile: string
     ) {
+
 
         this.endpointUrl = this.endpointUrl;
 
@@ -111,8 +111,8 @@ export class Model extends EventEmitter {
             securityPolicy: securityPolicy,
             //xx serverCertificate: serverCertificate,
             defaultSecureTokenLifetime: 40000,
-            certificateFile: certificateFile,
-            privateKeyFile: privateKeyFile,
+            certificateFile,
+            privateKeyFile,
 
             keepSessionAlive: true
 
@@ -191,7 +191,7 @@ export class Model extends EventEmitter {
             console.log(chalk.red("  exiting"));
             setTimeout(function () {
                 return process.exit(-1);
-            }, 5000);
+            }, 25000);
             return;
         }
 
@@ -202,7 +202,7 @@ export class Model extends EventEmitter {
             console.log(chalk.red("  exiting"));
             setTimeout(function () {
                 return process.exit(-1);
-            }, 5000);
+            }, 25000);
             return;
         }
         this.session.on("session_closed", () => {

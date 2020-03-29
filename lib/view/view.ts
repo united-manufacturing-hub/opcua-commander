@@ -45,6 +45,8 @@ const style = {
 };
 
 
+let linesMemory: string[] = [];
+let old_console_log: any;
 
 export function makeItems(arr: any[], width: number): string[] {
     return arr.map((a) => {
@@ -181,16 +183,18 @@ export class View {
             style: _.clone(style)
         });
 
-        let lines;
+        old_console_log = console.log;
 
         console.log = function (...args: [any]) {
 
             const str = format.apply(null, args);
-            lines = str.split("\n");
+            const lines = str.split("\n");
             lines.forEach((str: string) => {
                 logWindow.addItem(str);
+                linesMemory.push(str);
             });
             logWindow.select((logWindow as any).items.length - 1);
+
         };
         this.area2.append(logWindow);
         return logWindow;
@@ -446,6 +450,7 @@ export class View {
         await this.model.disconnect();
         console.log(chalk.green(" disconnected .... "));
         await new Promise((resolve) => setTimeout(resolve, 1000));
+
         process.exit(0);
     }
 

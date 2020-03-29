@@ -13,6 +13,7 @@
   ],
   "scripts": {
     "postinstall": "npm dedupe && node create_certificate.js certificate -s -o certificates/client_certificate.pem",
+    "build": "npx tsc -b",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Etienne Rossignon",

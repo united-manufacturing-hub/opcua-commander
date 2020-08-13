@@ -41,6 +41,7 @@
     "cli-truncate": "^2.1.0",
     "node-opcua-client": "^2.10.0",
     "node-opcua-pki": "^2.1.0",
+    "source-map-support": "^0.5.19",
     "underscore": "^1.10.2",
     "update-notifier": "^4.1.0",
     "yargs": "^15.4.1"

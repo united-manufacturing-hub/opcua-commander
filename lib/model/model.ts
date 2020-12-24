@@ -19,16 +19,19 @@ import {
     DataValue,
     VariantArrayType,
     BrowseDirection,
-    Variant
+    Variant,
+    WriteValue
 } from "node-opcua-client";
 import chalk from "chalk";
-import * as path from "path";
 import { w } from "../utils/utils";
 import { EventEmitter } from "events";
 import { StatusCodes } from "node-opcua-status-code";
 import _ from "underscore";
 
-const attributeKeys = Object.keys(AttributeIds).filter((x) => x !== "Invalid" && x[0].match(/[0-9]/)).map((x) => parseInt(x, 10));
+const attributeKeys: string[] = [];
+for(let i=1;i<=AttributeIds.LAST-1;i++) {
+    attributeKeys.push(AttributeIds[i]);
+} 
 
 const data = {
     reconnectionCount: 0,
@@ -242,12 +245,22 @@ export class Model extends EventEmitter {
         const dataType = this.getAttributeValue(attributes, AttributeIds.DataType);
         const arrayDimension = this.getAttributeValue(attributes, AttributeIds.ArrayDimensions);
         if (dataType) {
-            const dataToWrite = new Variant()
-            dataToWrite.dataType = dataType.text.split(" ")[0];
-            dataToWrite.value = data;
-            dataToWrite.arrayType = arrayDimension.text > 0 ?  VariantArrayType.Array : VariantArrayType.Scalar;
-            let risultato = await this.session.writeSingleNode(node.nodeId, dataToWrite);
-            return risultato;
+            const value = new Variant()
+            value.dataType = dataType.text.split(" ")[0];
+            value.value = data;
+            value.arrayType = arrayDimension.text > 0 ?  VariantArrayType.Array : VariantArrayType.Scalar;
+            const writeValue = new WriteValue({
+                nodeId: node.nodeId,
+                attributeId: AttributeIds.Value,
+                value: {
+                    value
+                }
+            });
+            
+            let statusCode = await this.session.write(writeValue);
+            console.log("writing    ", writeValue.toString());
+            console.log("statusCode ", statusCode.toString());
+            return statusCode;
         }
 
         return false;
@@ -364,9 +377,9 @@ export class Model extends EventEmitter {
         if (!this.session) {
             return [];
         }
-        const nodesToRead = attributeKeys.map((attributeId: number) => ({
+        const nodesToRead = attributeKeys.map((attributeId: string) => ({
             nodeId: node.nodeId,
-            attributeId: attributeId
+            attributeId: (AttributeIds as any)[attributeId]
         }));
 
         try {
@@ -391,6 +404,7 @@ export class Model extends EventEmitter {
             }
             return results;
         } catch (err) {
+            console.log(err);
             return [];
         }
     }

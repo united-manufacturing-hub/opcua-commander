@@ -22,16 +22,19 @@ import {
     Variant,
     WriteValue
 } from "node-opcua-client";
+import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+
 import chalk from "chalk";
 import { w } from "../utils/utils";
 import { EventEmitter } from "events";
 import { StatusCodes } from "node-opcua-status-code";
 import _ from "underscore";
+import * as os from "os";
 
 const attributeKeys: string[] = [];
-for(let i=1;i<=AttributeIds.LAST-1;i++) {
+for (let i = 1; i <= AttributeIds.LAST - 1; i++) {
     attributeKeys.push(AttributeIds[i]);
-} 
+}
 
 const data = {
     reconnectionCount: 0,
@@ -101,7 +104,8 @@ export class Model extends EventEmitter {
         securityMode: MessageSecurityMode,
         securityPolicy: SecurityPolicy,
         certificateFile: string,
-        privateKeyFile: string
+        clientCertificateManager: OPCUACertificateManager,
+        applicationUri: string
     ) {
 
 
@@ -113,11 +117,13 @@ export class Model extends EventEmitter {
 
             securityMode: securityMode,
             securityPolicy: securityPolicy,
-            //xx serverCertificate: serverCertificate,
+
             defaultSecureTokenLifetime: 40000,
             certificateFile,
-            privateKeyFile,
+            clientCertificateManager,
 
+            applicationName: applicationUri,
+            clientName: "Opcua-Commander " + os.hostname(),
             keepSessionAlive: true
 
         });
@@ -184,7 +190,7 @@ export class Model extends EventEmitter {
         }
     }
 
-    public async doDonnect(endpointUrl: string, userIdentity: UserIdentityInfo) {
+    public async doConnect(endpointUrl: string, userIdentity: UserIdentityInfo) {
 
         this.userIdentity = userIdentity;
         console.log("connecting to ....", endpointUrl);
@@ -248,7 +254,7 @@ export class Model extends EventEmitter {
             const value = new Variant()
             value.dataType = dataType.text.split(" ")[0];
             value.value = data;
-            value.arrayType = arrayDimension.text > 0 ?  VariantArrayType.Array : VariantArrayType.Scalar;
+            value.arrayType = arrayDimension.text > 0 ? VariantArrayType.Array : VariantArrayType.Scalar;
             const writeValue = new WriteValue({
                 nodeId: node.nodeId,
                 attributeId: AttributeIds.Value,
@@ -256,7 +262,7 @@ export class Model extends EventEmitter {
                     value
                 }
             });
-            
+
             let statusCode = await this.session.write(writeValue);
             console.log("writing    ", writeValue.toString());
             console.log("statusCode ", statusCode.toString());
@@ -274,7 +280,7 @@ export class Model extends EventEmitter {
         if (!this.session) {
             return null;
         }
-        
+
         const dataValues = await this.readNode(node);
         if (dataValues.statusCode == StatusCodes.Good) {
             if (dataValues.value.value) {

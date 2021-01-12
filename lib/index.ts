@@ -88,19 +88,20 @@ if (!endpointUrl) {
 
 (async () => {
 
-    const { certificateFile, privateKeyFile } = await makeCertificate();
+    const { certificateFile, clientCertificateManager, applicationUri } = await makeCertificate();
 
     const model = new Model();
     const view = new View(model);
-    await model.initialize(endpointUrl, securityMode, securityPolicy, certificateFile, privateKeyFile);
+    await model.initialize(endpointUrl, securityMode, securityPolicy, certificateFile, clientCertificateManager, applicationUri);
 
     const version = require("../package.json").version;
     console.log(chalk.green(" Welcome to Node-OPCUA Commander ") + version);
     console.log(chalk.cyan("   endpoint url    = "), endpointUrl.toString());
-    console.log(chalk.cyan("   securityMode    = "), securityMode.toString());
+    console.log(chalk.cyan("   securityMode    = "), MessageSecurityMode[securityMode]);
     console.log(chalk.cyan("   securityPolicy  = "), securityPolicy.toString());
-    console.log(chalk.cyan("   Certficate File = "), certificateFile);
+    console.log(chalk.cyan("   certificate file = "), certificateFile);
+    console.log(chalk.cyan("   trusted certificate folder = "), clientCertificateManager.trustedFolder);
     const userIdentity = makeUserIdentity(argv);
-    model.doDonnect(endpointUrl, userIdentity);
+    model.doConnect(endpointUrl, userIdentity);
 
 })();

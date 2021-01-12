@@ -15,7 +15,8 @@
     "build": "tsc -b",
     "release": "npm run build && npx release-it",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "ncu": "npx npm-check-updates -u --semverLevel minor "
+    "ncu": "npx npm-check-updates -u --semverLevel minor ",
+    "start": "tsc -b && node dist/index.js"
   },
   "author": "Etienne Rossignon",
   "license": "MIT",

@@ -30,10 +30,13 @@ export async function makeCertificate() {
     if (!fs.existsSync(privateKeyFile)) {
         throw new Error("Cannot find privateKeyFile " + privateKeyFile);
     }
+
+    const applicationUri = "OPCUA-COMMANDER";
+
     if (!fs.existsSync(certificateFile)) {
 
         await certificateManager.createSelfSignedCertificate({
-            applicationUri: "OPCUA-COMMANDER",
+            applicationUri,
             outputFile: certificateFile,
             subject: "/CN=Sterfive.com;/L=France",
             dns: [],
@@ -43,5 +46,5 @@ export async function makeCertificate() {
         });
     }
 
-    return { certificateFile, privateKeyFile };
+    return { certificateFile, clientCertificateManager, applicationUri };
 }

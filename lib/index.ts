@@ -7,10 +7,8 @@ import { View } from "./view/view";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-client";
 import { makeCertificate } from "./make_certificate";
 
-const truncate = require("cli-truncate");
 const updateNotifier = require("update-notifier");
 const pkg = require('../package.json');
-
 
 const argv = require("yargs")
     .wrap(132)
@@ -88,11 +86,14 @@ if (!endpointUrl) {
 
 (async () => {
 
-    const { certificateFile, clientCertificateManager, applicationUri } = await makeCertificate();
+    const { certificateFile, clientCertificateManager, applicationUri , applicationName} = await makeCertificate();
 
     const model = new Model();
     const view = new View(model);
-    await model.initialize(endpointUrl, securityMode, securityPolicy, certificateFile, clientCertificateManager, applicationUri);
+    await model.initialize(
+        endpointUrl, securityMode, securityPolicy, certificateFile, 
+        clientCertificateManager, applicationName,applicationUri
+    );
 
     const version = require("../package.json").version;
     console.log(chalk.green(" Welcome to Node-OPCUA Commander ") + version);

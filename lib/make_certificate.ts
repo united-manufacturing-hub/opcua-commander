@@ -1,8 +1,10 @@
 
 import envPaths from "env-paths";
+import { makeApplicationUrn } from "node-opcua-client";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import * as fs from "fs";
 import * as path from "path";
+import * as os from "os";
 
 const paths = envPaths("opcua-commander");
 
@@ -25,20 +27,21 @@ export async function makeCertificate() {
 
     await clientCertificateManager.initialize();
 
-    const certificateFile = path.join(pkiFolder, "opcua_commander_certificate.pem");
+    const certificateFile = path.join(pkiFolder, "own/certs/opcua_commander_certificate.pem");
     const privateKeyFile = clientCertificateManager.privateKey;
     if (!fs.existsSync(privateKeyFile)) {
         throw new Error("Cannot find privateKeyFile " + privateKeyFile);
     }
 
-    const applicationUri = "OPCUA-COMMANDER";
+    const applicationName =  "OPCUA-COMMANDER";
+    const applicationUri = makeApplicationUrn(os.hostname(),applicationName);
 
     if (!fs.existsSync(certificateFile)) {
 
         await certificateManager.createSelfSignedCertificate({
             applicationUri,
             outputFile: certificateFile,
-            subject: "/CN=Sterfive.com;/L=France",
+            subject: `/CN=${applicationName}/O=Sterfive;/L=France`,
             dns: [],
             // ip: [],
             startDate: new Date(),
@@ -46,5 +49,5 @@ export async function makeCertificate() {
         });
     }
 
-    return { certificateFile, clientCertificateManager, applicationUri };
+    return { certificateFile, clientCertificateManager, applicationName, applicationUri };
 }

@@ -105,6 +105,7 @@ export class Model extends EventEmitter {
         securityPolicy: SecurityPolicy,
         certificateFile: string,
         clientCertificateManager: OPCUACertificateManager,
+        applicationName: string,
         applicationUri: string
     ) {
 
@@ -115,15 +116,18 @@ export class Model extends EventEmitter {
 
             endpoint_must_exist: false,
 
-            securityMode: securityMode,
-            securityPolicy: securityPolicy,
+            securityMode,
+            securityPolicy,
 
-            defaultSecureTokenLifetime: 40000,
+            defaultSecureTokenLifetime: 40000, // 40 seconds
+
             certificateFile,
             clientCertificateManager,
 
-            applicationName: applicationUri,
-            clientName: "Opcua-Commander " + os.hostname(),
+            applicationName,
+            applicationUri,
+
+            clientName: "Opcua-Commander-" + os.hostname(),
             keepSessionAlive: true
 
         });

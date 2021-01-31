@@ -40,5 +40,5 @@ build your docker image
     
 Run the docker image
 
-    $ docker run -it commander bin/opcua-commander -e opc.tcp://localhost:26543     
+    $ docker run -it commander -e opc.tcp://localhost:26543     
      

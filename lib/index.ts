@@ -1,6 +1,5 @@
 /* eslint no-console: off , no-process-exit: off*/
 require("source-map-support/register");
-import * as  _ from "underscore";
 import chalk from "chalk";
 import { Model, makeUserIdentity } from "./model/model";
 import { View } from "./view/view";

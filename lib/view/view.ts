@@ -1,5 +1,4 @@
 import * as blessed from "blessed";
-import * as _ from "underscore";
 import { format, callbackify } from "util";
 import chalk from "chalk";
 
@@ -128,7 +127,7 @@ export class View {
             border: "line",
             scrollbar: scrollbar,
             noCellBorders: true,
-            style: _.clone(style),
+            style: {...style},
             align: "left",
             hidden: true
         });
@@ -250,7 +249,7 @@ export class View {
                     const res = await this.model.writeNode(treeItem.node, valuesToWrite);
                     console.log(res);
                     if (res.valueOf() == 0) {
-                        writeResultMsg.setContent("Write successfull");
+                        writeResultMsg.setContent("Write successful");
                     } else {
                         writeResultMsg.setContent("Write error");
                     }
@@ -278,8 +277,8 @@ export class View {
             border: "line",
             scrollbar: scrollbar,
             noCellBorders: true,
-            style: _.clone(style),
-            align: "left"
+             style: {...style},
+           align: "left"
         });
         this.area1.append(this.monitoredItemsList);
 
@@ -332,7 +331,7 @@ export class View {
                     inverse: true
                 }
             },
-            style: _.clone(style)
+            style: {...style}
         });
 
         old_console_log = console.log;
@@ -360,7 +359,7 @@ export class View {
             width: "100%",
             height: 2,
             keys: true,
-            style: _.clone(style),
+            style: {...style},
             //xx label: " {bold}{cyan-fg}Info{/cyan-fg}{/bold}",
             //xx border: "line",
             bg: "cyan",
@@ -377,7 +376,7 @@ export class View {
             {
                 //xx prefix: "M",
                 keys: ["m"],
-                callback: () => this._onMonitioredSelectedItem()
+                callback: () => this._onMonitoredSelectedItem()
             },
             "Write":
             {
@@ -440,7 +439,7 @@ export class View {
             vi: true,
             mouse: true,
             border: "line",
-            style: _.clone(style)
+            style: {...style}
         });
 
         //allow control the table with the keyboard
@@ -540,7 +539,7 @@ export class View {
             border: "line",
             // noCellBorders: true,
             scrollbar: scrollbar,
-            style: _.clone(style),
+            style: {...style},
             align: "left",
             keys: true
         });
@@ -574,7 +573,7 @@ export class View {
             border: "line",
             scrollbar: scrollbar,
             noCellBorders: false,
-            style: _.clone(style)
+            style: {...style}
         });
 
         this.$headers = ["EventType", "ConditionId",
@@ -620,7 +619,7 @@ export class View {
         this.screen.render();
     }
 
-    private _onMonitioredSelectedItem() {
+    private _onMonitoredSelectedItem() {
         const treeItem = this.tree.getSelectedItem();
         if (treeItem.node.monitoredItem) {
             console.log(" Already monitoring ", treeItem.node.nodeId.toString());

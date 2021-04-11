@@ -1,6 +1,3 @@
-// exports.TreeOld = require("./lib/widget/TreeOld.js")
-
-import * as _ from "underscore";
 import { assert } from "node-opcua-client"
 import chalk from "chalk";
 import { Widgets } from "blessed";
@@ -8,6 +5,10 @@ import { Widgets } from "blessed";
 const blessed = require("blessed");
 
 // some unicode icon characters ►▼◊◌○●□▪▫֎☺◘♦
+
+function isFunction(variableToCheck: any) {
+    return variableToCheck instanceof Function;
+}
 
 function toContent(node: any, isLastChild: boolean, parent: any): any {
 
@@ -25,7 +26,7 @@ function toContent(node: any, isLastChild: boolean, parent: any): any {
 
     const hasChildren = node.children && node.children.length > 0;
     //    [+]
-    const c = node.expanded ? (hasChildren ? chalk.green("▼ ") : chalk.blue("▼ ")) : "► ";
+    const c = node.expanded ? (hasChildren ? chalk.green("▼") : "─") : "►";
     const str = node.prefix + s + c + node.name;
 
     return str;
@@ -109,7 +110,7 @@ export class Tree extends blessed.List {
 
         function dumpChildren(this: Tree, node: any, depth: number): void {
 
-            if (_.isFunction(node.children)) {
+            if (isFunction(node.children)) {
                 return;
             }
             node.children = node.children || [];
@@ -123,7 +124,7 @@ export class Tree extends blessed.List {
 
                     isLastChild = (i === node.children.length - 1);
                     this._add(child, isLastChild, node);
-                    if (child.expanded && !_.isFunction(child.children)) {
+                    if (child.expanded && !isFunction(child.children)) {
                         dumpChildren.call(this, child, depth + 1);
                     }
 
@@ -145,12 +146,12 @@ export class Tree extends blessed.List {
             return;
         }
 
-        const populate_children = _.isFunction(node.children) ? node.children : dummy;
+        const populate_children = isFunction(node.children) ? node.children : dummy;
         populate_children.call(this, node, (err: Error | null, children: any) => {
             if (err) {
                 return;
             }
-            assert(_.isArray(children));
+            assert(Array.isArray(children));
             node.children = children;
             node.expanded = true;
             this.setData(this.__data);

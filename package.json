@@ -1,6 +1,6 @@
 {
   "name": "opcua-commander",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "OPCUA CLI client",
   "main": "index.js",
   "keywords": [
@@ -25,8 +25,8 @@
     "url": "https://github.com/node-opcua/opcua-commander.git"
   },
   "bin": {
-    "opcua-commander": "./bin/opcua-commander",
-    "oc": "./bin/opcua-commander"
+    "opcua-commander": "bin/opcua-commander",
+    "oc": "bin/opcua-commander"
   },
   "engines": {
     "node": ">= 8.0"

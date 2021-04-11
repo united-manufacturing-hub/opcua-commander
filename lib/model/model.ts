@@ -108,19 +108,21 @@ function symbol(ref: ReferenceDescription) {
   }
   switch (ref.nodeClass) {
     case NodeClass.Object:
-      return [chalk.cyan("[O]"), chalk.cyan("[O]")];
+      return [chalk.cyanBright("[O]"), chalk.cyanBright("[O]")];
     case NodeClass.Variable:
-      return [chalk.cyan("[V]"), chalk.cyan("[V]")];
+      return [chalk.greenBright("[V]"), chalk.greenBright("[V]")];
     case NodeClass.Method:
       return [chalk.magenta("[M]"), chalk.magenta("[M]")];
     case NodeClass.ObjectType:
-      return [chalk.yellow("[OT]"), chalk.yellow("OT]")];
+      return [chalk.bgCyanBright("[O]"), chalk.cyan("[OT]")];
     case NodeClass.VariableType:
-      return [chalk.yellow("[VT]"), chalk.yellow("Ⓥ")];
+      return [chalk.bgGreenBright("[V]"), chalk.yellow("Ⓥ")];
     case NodeClass.ReferenceType:
-      return [chalk.yellow("[RF]"), chalk.yellow("➾")];
+      return [chalk.bgWhiteBright.black("[R]"), chalk.yellowBright("➾")];
     case NodeClass.DataType:
-      return [chalk.yellow("[DT]"), chalk.yellow("Ⓓ")];
+      return [chalk.bgBlueBright("[D]"), chalk.bgBlueBright("Ⓓ")];
+    case NodeClass.View:
+      return [chalk.magentaBright("[V]"), chalk.magentaBright("Ⓓ")];
   }
   return s;
 }

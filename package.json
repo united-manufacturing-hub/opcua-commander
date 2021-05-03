@@ -40,16 +40,16 @@
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.8.21",
     "camelcase": "^6.2.0",
-    "chalk": "^4.1.0",
+    "chalk": "^4.1.1",
     "cli-truncate": "^2.1.0",
     "decamelize": "^5.0.0",
     "es-abstract": "^1.18.0",
-    "node-opcua-client": "^2.37.0",
-    "node-opcua-pki": "^2.9.7",
+    "node-opcua-client": "^2.41.1",
+    "node-opcua-pki": "^2.9.8",
     "source-map-support": "^0.5.19",
-    "underscore": "^1.12.1",
+    "underscore": "^1.13.1",
     "update-notifier": "5.1.0",
-    "yargs": "^16.2.0"
+    "yargs": "^17.0.0"
   },
   "devDependencies": {
     "typescript": "^4.2.4"

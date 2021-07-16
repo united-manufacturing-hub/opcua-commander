@@ -6,7 +6,7 @@ import { TreeItem } from "../widget/tree_item";
 import { ClientAlarmList, resolveNodeId, DataValue, ResultMask, VariantArrayType } from "node-opcua-client";
 
 import { Tree } from "../widget/widget_tree";
-import { Model } from "../model/model";
+import { Model, NodeChild } from "../model/model";
 import { updateAlarmBox } from "./alarm_box";
 import { w } from "../utils/utils";
 import { threadId } from "worker_threads";
@@ -484,7 +484,13 @@ export class View {
 
         async function f(this: any, node: any) {
             try {
-                const children = await this.model.expand_opcua_node(node);
+                let children = await this.model.expand_opcua_node(node);
+
+                // we sort the childrens by browseName alphabetically
+                children = children.sort((a: NodeChild,b: NodeChild) => {
+                    return a.browseName < b.browseName ? -1 : (a.browseName > b.browseName ? 1 : 0);
+                });
+
                 const results = children.map((c: any) => (
                     new TreeItem({ ...c, children: this.expand_opcua_node.bind(this) })
                 ));

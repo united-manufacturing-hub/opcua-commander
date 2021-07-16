@@ -110,4 +110,6 @@ if (!endpointUrl) {
     view.logWindow.focus();
     setTimeout(() => process.exit(-1), 10000);
   });
+
+
 })();

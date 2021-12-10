@@ -35,7 +35,7 @@ import { StatusCodes } from "node-opcua-status-code";
 import * as os from "os";
 
 const attributeKeys: string[] = [];
-for (let i = 1; i <= AttributeIds.LAST - 1; i++) {
+for (let i = 1; i <= AttributeIds.AccessLevelEx - 1; i++) {
   attributeKeys.push(AttributeIds[i]);
 }
 
@@ -77,6 +77,7 @@ export function makeUserIdentity(argv: any): UserIdentityInfo {
 }
 
 export interface Model {
+  on(eventName: "connectionError", eventHandler: (err: Error) => void): this;
   on(eventName: "alarmChanged", eventHandler: (list: ClientAlarmList) => void): this;
   on(eventName: "monitoredItemListUpdated", eventHandler: (monitoredItemsListData: any) => void): this;
   on(eventName: "monitoredItemChanged", eventHandler: (monitoredItemsListData: any, node: any, dataValue: DataValue) => void): this;
@@ -242,10 +243,15 @@ export class Model extends EventEmitter {
       await this.client!.connect(endpointUrl);
     } catch (err) {
       console.log(" Cannot connect", err.toString());
-      console.log(chalk.red("  exiting"));
-      setTimeout(function () {
-        return process.exit(-1);
-      }, 25000);
+      if (this.client!.securityMode !== MessageSecurityMode.None && err.message.match(/has been disconnected by third party/)) {
+        console.log(
+          "Because you are using a secure connection, you need to make sure that the certificate\n" +
+            "of opcua-commander is trusted by the server you're trying to connect to.\n" +
+            "Please see the documentation for instructions on how to import a certificate into the CA store of the server.\n" +
+            `The opcua-commander certificate is in the folder \n${chalk.cyan(this.client!.certificateFile)}`
+        );
+      }
+      this.emit("connectionError", err);
       return;
     }
 

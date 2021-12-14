@@ -28,8 +28,7 @@
     "url": "https://github.com/node-opcua/opcua-commander.git"
   },
   "bin": {
-    "opcua-commander": "bin/opcua-commander",
-    "oc": "bin/opcua-commander"
+    "opcua-commander": "bin/opcua-commander"
   },
   "engines": {
     "node": ">= 8.0"

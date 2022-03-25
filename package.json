@@ -15,7 +15,7 @@
     "build": "tsc -b",
     "release": "npm run build && npx release-it",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "ncu": "npx npm-check-updates -u --semverLevel minor -x chalk,yargs,env-paths",
+    "ncu": "npx npm-check-updates -u --target minor -x chalk,yargs,env-paths",
     "start": "tsc -b && node dist/index.js",
     "demo:secure": "tsc -b && node dist/index.js -e opc.tcp://opcuademo.sterfive.com:26543 -s=SignAndEncrypt -P=Aes128_Sha256_RsaOaep -u=user1 -p=password1",
     "demo:secure2": "tsc -b && node dist/index.js -e opc.tcp://opcuademo.sterfive.com:26543 -s=SignAndEncrypt -P=Basic256Sha256 -u=user1 -p=password1",
@@ -46,14 +46,14 @@
     "cli-truncate": "^3.1.0",
     "decamelize": "^6.0.0",
     "es-abstract": "^1.19.1",
-    "node-opcua-client": "^2.64.1",
-    "node-opcua-pki": "^2.14.0",
+    "node-opcua-client": "^2.65.1",
+    "node-opcua-pki": "^2.14.1",
     "source-map-support": "^0.5.21",
     "underscore": "^1.13.2",
     "update-notifier": "5.1.0",
     "yargs": "17.2.1"
   },
   "devDependencies": {
-    "typescript": "^4.5.5"
+    "typescript": "^4.6.3"
   }
 }

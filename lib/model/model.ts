@@ -1,38 +1,40 @@
+import { EventEmitter } from "events";
+import * as os from "os";
 import {
+  accessLevelFlagToString,
   AttributeIds,
-  OPCUAClient,
-  ClientSession,
-  ClientSubscription,
-  MessageSecurityMode,
-  SecurityPolicy,
-  UserIdentityToken,
-  UserIdentityInfo,
-  UserTokenType,
-  TimestampsToReturn,
-  installAlarmMonitoring,
+  BrowseDirection,
   ClientAlarmList,
   ClientMonitoredItem,
-  NodeId,
-  NodeClass,
-  accessLevelFlagToString,
+  ClientSession,
+  ClientSubscription,
   DataTypeIds,
   DataValue,
-  VariantArrayType,
-  BrowseDirection,
-  Variant,
-  WriteValue,
+  installAlarmMonitoring,
+  MessageSecurityMode,
   MonitoringMode,
+  NodeClass,
+  NodeId,
+  OPCUAClient,
   readUAAnalogItem,
   ReferenceDescription,
   resolveNodeId,
+  SecurityPolicy,
+  TimestampsToReturn,
+  UserIdentityInfo,
+  UserIdentityToken,
+  UserTokenType,
+  Variant,
+  VariantArrayType,
+  WriteValue,
 } from "node-opcua-client";
 import { OPCUACertificateManager } from "node-opcua-certificate-manager";
+import { StatusCodes } from "node-opcua-status-code";
+import { findBasicDataType } from "node-opcua-pseudo-session";
 
 import chalk, { red } from "chalk";
 import { w } from "../utils/utils";
-import { EventEmitter } from "events";
-import { StatusCodes } from "node-opcua-status-code";
-import * as os from "os";
+import { extractBrowsePath } from "../utils/extract_browse_path";
 
 const attributeKeys: string[] = [];
 for (let i = 1; i <= AttributeIds.AccessLevelEx - 1; i++) {
@@ -81,6 +83,7 @@ export interface Model {
   on(eventName: "alarmChanged", eventHandler: (list: ClientAlarmList) => void): this;
   on(eventName: "monitoredItemListUpdated", eventHandler: (monitoredItemsListData: any) => void): this;
   on(eventName: "monitoredItemChanged", eventHandler: (monitoredItemsListData: any, node: any, dataValue: DataValue) => void): this;
+  on(eventName: "nodeChanged", eventHandler: (nodeId: NodeId) => void): this;
 }
 
 const hasComponentNodeId = resolveNodeId("HasComponent").toString();
@@ -293,18 +296,24 @@ export class Model extends EventEmitter {
     return treeItem;
   }
 
-  private getAttributeValue(attributes: any[], attribute: number) {
-    return attributes.find((a) => a.attribute == attributeIdToString[attribute]);
-  }
-  public async writeNode(node: any, data: any) {
-    const attributes = await this.readNodeAttributes(node);
-    const dataType = this.getAttributeValue(attributes, AttributeIds.DataType);
-    const arrayDimension = this.getAttributeValue(attributes, AttributeIds.ArrayDimensions);
+  public async writeNode(node: { nodeId: NodeId }, data: any) {
+    const dataTypeIdDataValue = await this.session.read({ nodeId: node.nodeId, attributeId: AttributeIds.DataType });
+    const arrayDimensionDataValue = await this.session.read({ nodeId: node.nodeId, attributeId: AttributeIds.ArrayDimensions });
+    const valueRankDataValue = await this.session.read({ nodeId: node.nodeId, attributeId: AttributeIds.ValueRank });
+
+    const dataTypeId = dataTypeIdDataValue.value.value as NodeId;
+    const dataType = await findBasicDataType(this.session, dataTypeId);
+
+    const arrayDimension = arrayDimensionDataValue.value.value as null | number[];
+    const valueRank = valueRankDataValue.value.value as number;
+
     if (dataType) {
-      const value = new Variant();
-      value.dataType = dataType.text.split(" ")[0];
-      value.value = data;
-      value.arrayType = arrayDimension.text > 0 ? VariantArrayType.Array : VariantArrayType.Scalar;
+      const value = new Variant({
+        dataType,
+        arrayType: valueRank === -1 ? VariantArrayType.Scalar : valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Matrix,
+        dimensions: arrayDimension,
+        value: data,
+      });
       const writeValue = new WriteValue({
         nodeId: node.nodeId,
         attributeId: AttributeIds.Value,
@@ -316,12 +325,17 @@ export class Model extends EventEmitter {
       let statusCode = await this.session.write(writeValue);
       console.log("writing    ", writeValue.toString());
       console.log("statusCode ", statusCode.toString());
+      this.emit("nodeChanged", node.nodeId);
       return statusCode;
+
     }
 
     return false;
   }
 
+  public async extractBrowsePath(nodeId: NodeId): Promise<string> {
+    return await extractBrowsePath(this.session, nodeId);
+  }
   public async readNode(node: any) {
     return await this.session.read(node);
   }
@@ -424,12 +438,12 @@ export class Model extends EventEmitter {
     });
   }
 
-  public async readNodeAttributes(node: { nodeId: NodeId }): Promise<any[]> {
+  public async readNodeAttributes(nodeId: NodeId): Promise<any[]> {
     if (!this.session) {
       return [];
     }
     const nodesToRead = attributeKeys.map((attributeId: string) => ({
-      nodeId: node.nodeId,
+      nodeId,
       attributeId: (AttributeIds as any)[attributeId],
     }));
 

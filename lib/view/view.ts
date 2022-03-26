@@ -236,7 +236,6 @@ export class View {
 
           // send data to opc
           const res = await this.model.writeNode(treeItem.node, valuesToWrite);
-          console.log(res);
           if (res.valueOf() == 0) {
             writeResultMsg.setContent("Write successful");
           } else {

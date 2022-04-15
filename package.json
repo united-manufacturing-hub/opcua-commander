@@ -42,7 +42,7 @@
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.11.0",
     "camelcase": "^6.3.0",
-    "chalk": "4.0.0",
+    "chalk": "4.1.2",
     "cli-truncate": "^3.1.0",
     "decamelize": "^6.0.0",
     "es-abstract": "^1.19.5",

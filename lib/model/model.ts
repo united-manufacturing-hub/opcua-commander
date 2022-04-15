@@ -8,6 +8,7 @@ import {
   ClientMonitoredItem,
   ClientSession,
   ClientSubscription,
+  DataType,
   DataTypeIds,
   DataValue,
   installAlarmMonitoring,
@@ -35,6 +36,7 @@ import { findBasicDataType } from "node-opcua-pseudo-session";
 import chalk, { red } from "chalk";
 import { w } from "../utils/utils";
 import { extractBrowsePath } from "../utils/extract_browse_path";
+import { DataTypeAttributes } from "node-opcua-types";
 
 const attributeKeys: string[] = [];
 for (let i = 1; i <= AttributeIds.AccessLevelEx - 1; i++) {
@@ -307,27 +309,73 @@ export class Model extends EventEmitter {
     const arrayDimension = arrayDimensionDataValue.value.value as null | number[];
     const valueRank = valueRankDataValue.value.value as number;
 
+    const coerceBoolean = (data: any) => {
+      return data === "true" || data === "1" || data === true;
+    };
+    const coerceNumber = (data: any) => {
+     return  parseInt(data, 10);
+    };
+    const coerceNumberR = (data: any) => {
+      return  parseFloat(data );
+     };
+     
+    const coerceNoop = (data: any) => data;
+
+    const coerceFunc = (dataType: DataType) => {
+      switch (dataType) {
+        case DataType.Boolean:
+          return coerceBoolean;
+        case DataType.Int16:
+        case DataType.Int32:
+        case DataType.Int64:
+        case DataType.UInt16:
+        case DataType.UInt32:
+        case DataType.UInt64:
+          return coerceNumber;
+        case DataType.Double:
+        case DataType.Float:
+          return coerceNumberR;
+        default:
+          return coerceNoop;
+      }
+    };
+
+
     if (dataType) {
-      const value = new Variant({
-        dataType,
-        arrayType: valueRank === -1 ? VariantArrayType.Scalar : valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Matrix,
-        dimensions: arrayDimension,
-        value: data,
-      });
-      const writeValue = new WriteValue({
-        nodeId: node.nodeId,
-        attributeId: AttributeIds.Value,
-        value: {
-          value,
-        },
-      });
+      try {
+        const arrayType =
+          valueRank === -1 ? VariantArrayType.Scalar : valueRank === 1 ? VariantArrayType.Array : VariantArrayType.Matrix;
+        const dimensions = arrayType === VariantArrayType.Matrix ? arrayDimension : undefined;
 
-      let statusCode = await this.session.write(writeValue);
-      console.log("writing    ", writeValue.toString());
-      console.log("statusCode ", statusCode.toString());
-      this.emit("nodeChanged", node.nodeId);
-      return statusCode;
-
+        function coerceStringToDataType(data: any) {
+          const c = coerceFunc(dataType);
+          if (arrayType === VariantArrayType.Scalar) {
+            return c(data);
+          } else {
+            return data.map((d: any) => c(d));
+          }
+        }
+        const value = new Variant({
+          dataType,
+          arrayType,
+          dimensions,
+          value: coerceStringToDataType(data),
+        });
+        const writeValue = new WriteValue({
+          nodeId: node.nodeId,
+          attributeId: AttributeIds.Value,
+          value: {
+            value,
+          },
+        });
+        let statusCode = await this.session.write(writeValue);
+        console.log("writing    ", writeValue.toString());
+        console.log("statusCode ", statusCode.toString());
+        this.emit("nodeChanged", node.nodeId);
+        return statusCode;
+      } catch (err) {
+        return StatusCodes.BadInternalError;
+      }
     }
 
     return false;

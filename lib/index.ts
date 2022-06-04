@@ -60,7 +60,7 @@ const argv = require("yargs")
 
 const securityMode: MessageSecurityMode = MessageSecurityMode[argv.securityMode || "None"] as any as MessageSecurityMode;
 if (!securityMode) {
-  throw new Error("Invalid Security mode , should be " + MessageSecurityMode);
+  throw new Error(`Invalid Security mode , was  ${chalk.magenta(argv.securityMode)}\nshould be  ${chalk.cyan(Object.values(MessageSecurityMode).filter(isNaN).join(","))}`);
 }
 
 const securityPolicy = (SecurityPolicy as any)[argv.securityPolicy || "None"];

@@ -43,6 +43,7 @@
     "blessed-contrib": "^4.11.0",
     "camelcase": "^7.0.0",
     "chalk": "4.1.2",
+    "check-node-version": "^4.2.1",
     "cli-truncate": "^3.1.0",
     "decamelize": "^6.0.0",
     "es-abstract": "^1.20.1",

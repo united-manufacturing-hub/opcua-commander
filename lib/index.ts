@@ -1,10 +1,37 @@
 /* eslint no-console: off , no-process-exit: off*/
 require("source-map-support/register");
+import { promisify } from "util";
 import chalk from "chalk";
 import { Model, makeUserIdentity } from "./model/model";
 import { View } from "./view/view";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-client";
 import { makeCertificate } from "./make_certificate";
+
+const check = require("check-node-version");
+
+async function check_nodejs() {
+  try {
+    const result = await promisify(check)({ node: ">=12" });
+    if (result.isSatisfied) {
+      return;
+    }
+    console.error("Some package version(s) failed!");
+
+    for (const packageName of Object.keys(result.versions)) {
+      if (!result.versions[packageName].isSatisfied) {
+        console.error(`Incorrect ${packageName} version. 
+        your version            : ${result.versions[packageName].version.version}
+        expected minimum version: ${result.versions[packageName].wanted.range}`);
+        // ${JSON.stringify(result.versions[packageName],null, " ")}
+      }
+    }
+    process.exit();
+ }
+  catch(err) {
+      console.error(err);
+      process.exit();
+  }
+}
 
 // xx const updateNotifier = require("update-notifier");
 const pkg = require("../package.json");
@@ -60,7 +87,11 @@ const argv = require("yargs")
 
 const securityMode: MessageSecurityMode = MessageSecurityMode[argv.securityMode || "None"] as any as MessageSecurityMode;
 if (!securityMode) {
-  throw new Error(`Invalid Security mode , was  ${chalk.magenta(argv.securityMode)}\nshould be  ${chalk.cyan(Object.values(MessageSecurityMode).filter(isNaN).join(","))}`);
+  throw new Error(
+    `Invalid Security mode , was  ${chalk.magenta(argv.securityMode)}\nshould be  ${chalk.cyan(
+      Object.values(MessageSecurityMode).filter(isNaN).join(",")
+    )}`
+  );
 }
 
 const securityPolicy = (SecurityPolicy as any)[argv.securityPolicy || "None"];
@@ -81,6 +112,9 @@ if (!endpointUrl) {
 }
 
 (async () => {
+
+  await check_nodejs();
+
   const { certificateFile, clientCertificateManager, applicationUri, applicationName } = await makeCertificate();
 
   const model = new Model();
@@ -110,6 +144,4 @@ if (!endpointUrl) {
     view.logWindow.focus();
     setTimeout(() => process.exit(-1), 10000);
   });
-
-
 })();

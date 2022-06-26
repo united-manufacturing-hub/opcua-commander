@@ -6,7 +6,7 @@ import { View } from "./view/view";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-client";
 import { makeCertificate } from "./make_certificate";
 
-const updateNotifier = require("update-notifier");
+// xx const updateNotifier = require("update-notifier");
 const pkg = require("../package.json");
 
 const argv = require("yargs")
@@ -76,7 +76,7 @@ const endpointUrl = argv.endpoint || "opc.tcp://localhost:26543";
 const yargs = require("yargs");
 if (!endpointUrl) {
   yargs.showHelp();
-  updateNotifier({ pkg }).notify();
+  // xx updateNotifier({ pkg }).notify();
   process.exit(0);
 }
 

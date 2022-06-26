@@ -15,7 +15,7 @@
     "build": "tsc -b",
     "release": "npm run build && npx release-it",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "ncu": "npx npm-check-updates -u --target minor -x chalk,yargs,env-paths",
+    "ncu": "npx npm-check-updates -u -x chalk,yargs,env-paths,update-notifier,camel-case",
     "start": "tsc -b && node dist/index.js",
     "demo:secure": "tsc -b && node dist/index.js -e opc.tcp://opcuademo.sterfive.com:26543 -s=SignAndEncrypt -P=Aes128_Sha256_RsaOaep -u=user1 -p=password1",
     "demo:secure2": "tsc -b && node dist/index.js -e opc.tcp://opcuademo.sterfive.com:26543 -s=SignAndEncrypt -P=Basic256Sha256 -u=user1 -p=password1",
@@ -38,22 +38,21 @@
   },
   "dependencies": {
     "@types/blessed": "^0.1.19",
-    "async": "^3.2.3",
+    "async": "^3.2.4",
     "blessed": "^0.1.81",
     "blessed-contrib": "^4.11.0",
-    "camelcase": "^6.3.0",
+    "camelcase": "^7.0.0",
     "chalk": "4.1.2",
     "cli-truncate": "^3.1.0",
     "decamelize": "^6.0.0",
-    "es-abstract": "^1.19.5",
-    "node-opcua-client": "^2.66.3",
-    "node-opcua-pki": "^2.15.4",
+    "es-abstract": "^1.20.1",
+    "node-opcua-client": "^2.71.0",
+    "node-opcua-pki": "^2.17.0",
     "source-map-support": "^0.5.21",
-    "underscore": "^1.13.2",
-    "update-notifier": "5.1.0",
-    "yargs": "17.2.1"
+    "underscore": "^1.13.4",
+    "yargs": "17.5.1"
   },
   "devDependencies": {
-    "typescript": "^4.6.3"
+    "typescript": "^4.7.4"
   }
 }

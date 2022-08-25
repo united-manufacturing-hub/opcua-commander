@@ -555,12 +555,14 @@ export class View {
       border: "line",
       scrollbar: scrollbar,
       noCellBorders: false,
-      style: { ...style },
+      style: { ...style }!,
+      align : "left"
     });
 
     this.$headers = [
       "EventType",
       "ConditionId",
+      "SourceName",
       // "BranchId",
       // "EventId",
       "Message",

@@ -47,8 +47,9 @@
     "check-node-version": "^4.2.1",
     "cli-truncate": "2.1.0",
     "decamelize": "^6.0.0",
-    "es-abstract": "^1.20.1",
-    "node-opcua-client": "^2.75.0",
+    "es-abstract": "^1.20.2",
+    "node-opcua-certificate-manager": "^2.77.0",
+    "node-opcua-client": "^2.77.0",
     "node-opcua-pki": "^2.17.0",
     "source-map-support": "^0.5.21",
     "underscore": "^1.13.4",
@@ -56,6 +57,6 @@
     "yargs": "17.5.1"
   },
   "devDependencies": {
-    "typescript": "^4.7.4"
+    "typescript": "^4.8.3"
   }
 }

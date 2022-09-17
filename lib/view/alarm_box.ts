@@ -1,7 +1,7 @@
 import { Widgets } from "blessed";
 import { ClientAlarmList, EventStuff } from "node-opcua-client";
 import wrap from "wordwrap";
-import truncate from "cli-truncate";
+const truncate = require("cli-truncate");
 
 function ellipsys(a: any) {
   if (!a) {

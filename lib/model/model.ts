@@ -1,5 +1,6 @@
 import { EventEmitter } from "events";
 import * as os from "os";
+import chalk from "chalk";
 import {
   accessLevelFlagToString,
   AttributeIds,
@@ -17,13 +18,12 @@ import {
   NodeClass,
   NodeId,
   OPCUAClient,
-  readUAAnalogItem,
+  ReadValueIdOptions,
   ReferenceDescription,
   resolveNodeId,
   SecurityPolicy,
   TimestampsToReturn,
   UserIdentityInfo,
-  UserIdentityToken,
   UserTokenType,
   Variant,
   VariantArrayType,
@@ -33,10 +33,9 @@ import { OPCUACertificateManager } from "node-opcua-certificate-manager";
 import { StatusCodes } from "node-opcua-status-code";
 import { findBasicDataType } from "node-opcua-pseudo-session";
 
-import chalk, { red } from "chalk";
 import { w } from "../utils/utils";
 import { extractBrowsePath } from "../utils/extract_browse_path";
-import { DataTypeAttributes } from "node-opcua-types";
+import { TreeItem } from "../widget/tree_item";
 
 const attributeKeys: string[] = [];
 for (let i = 1; i <= AttributeIds.AccessLevelEx - 1; i++) {
@@ -408,7 +407,7 @@ export class Model extends EventEmitter {
     return null;
   }
 
-  public monitor_item(treeItem: any) {
+  public monitor_item(treeItem: TreeItem) {
     if (!this.subscription) return;
     const node = treeItem.node;
 
@@ -433,7 +432,7 @@ export class Model extends EventEmitter {
 
         node.monitoredItem = monitoredItem;
 
-        const monitoredItemData = [node.browseName, node.nodeId.toString(), "Q"];
+        const monitoredItemData = [node.displayName, node.nodeId.toString(), "Q"];
 
         this.monitoredItemsListData.push(monitoredItemData);
 
@@ -455,7 +454,7 @@ export class Model extends EventEmitter {
     );
   }
 
-  public unmonitor_item(treeItem: any) {
+  public unmonitor_item(treeItem: TreeItem) {
     const node = treeItem.node;
 
     // terminate subscription
@@ -486,19 +485,19 @@ export class Model extends EventEmitter {
     });
   }
 
-  public async readNodeAttributes(nodeId: NodeId): Promise<any[]> {
+  public async readNodeAttributes(nodeId: NodeId): Promise<{attribute: string, text:string}[]> {
     if (!this.session) {
       return [];
     }
-    const nodesToRead = attributeKeys.map((attributeId: string) => ({
+    const nodesToRead: ReadValueIdOptions[] = attributeKeys.map((attributeId: string) => ({
       nodeId,
-      attributeId: (AttributeIds as any)[attributeId],
+      attributeId: ((AttributeIds as any)[attributeId as any]) as AttributeIds,
     }));
 
     try {
-      const dataValues = await this.session.read(nodesToRead);
-
-      const results: any[] = [];
+    
+      const dataValues = await this.session!.read(nodesToRead);
+      const results: {attribute: string, text: string}[] = [];
 
       for (let i = 0; i < nodesToRead.length; i++) {
         const nodeToRead = nodesToRead[i];
@@ -606,8 +605,8 @@ export class Model extends EventEmitter {
     }
   }
 }
-function invert(o: any): any {
-  const r: any = {};
+function invert<T>(o: Record<string,T>) {
+  const r: Record<string,string> = {};
   for (const [k, v] of Object.entries(o)) {
     r[v.toString()] = k;
   }

@@ -1,7 +1,7 @@
-import { assert } from "node-opcua-client"
 import chalk from "chalk";
+import { assert } from "node-opcua-client"
 import { Widgets } from "blessed";
-
+import { TreeItem } from "./tree_item";
 const blessed = require("blessed");
 
 // some unicode icon characters ►▼◊◌○●□▪▫֎☺◘♦
@@ -37,9 +37,8 @@ function dummy(node: any, callback: (err: Error | null, child: any) => void) {
 export interface Tree extends Widgets.ListElement {
 
 }
-
 export class Tree extends blessed.List {
-
+    private items: TreeItem[] = [];
     private __data: any;
     private _index_selectedNode: number;
     private _old_selectedNode: any;
@@ -172,11 +171,11 @@ export class Tree extends blessed.List {
         this.walk(data, 0);
         this.screen.render();
     }
-    getSelectedItem() {
+    getSelectedItem(): TreeItem {
         return this.getTreeItemAtPos(this.getSelectedIndex());
     }
-    private getTreeItemAtPos(selectedIndex: number) {
-        return (this as any).items[selectedIndex];
+    private getTreeItemAtPos(selectedIndex: number): TreeItem{
+        return this.items[selectedIndex];
     }
     private getSelectedIndex(): number {
         return (this as any).selected;

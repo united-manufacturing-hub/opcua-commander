@@ -1,4 +1,5 @@
 import { NodeClass } from "node-opcua-client";
+
 /**
  * @param options.class
  * @param options.nodeId
@@ -7,6 +8,7 @@ import { NodeClass } from "node-opcua-client";
  */
 export class TreeItem {
     
+    public node: any | undefined = undefined;
     private arrow: string = "";
     private displayName: string = "";
     private class: NodeClass = 1;

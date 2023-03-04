@@ -7,3 +7,6 @@ certificates
 pki/
 build/
 dist/
+*.snap
+bin/bundle.*
+credentials*

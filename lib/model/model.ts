@@ -1,6 +1,13 @@
 import { EventEmitter } from "events";
 import * as os from "os";
-import chalk from "chalk";
+import {
+  bgBlueBright,
+  yellow,
+  cyanBright,
+  greenBright, 
+  magenta, bgCyanBright, cyan, bgGreenBright, bgWhiteBright, yellowBright, green, magentaBright, red
+}
+  from "chalk";
 import {
   accessLevelFlagToString,
   AttributeIds,
@@ -109,25 +116,25 @@ function referenceToSymbol(ref: ReferenceDescription) {
 function symbol(ref: ReferenceDescription) {
   const s = " ";
   if (ref.typeDefinition.toString() === "ns=0;i=61") {
-    return [chalk.yellow("[F]"), chalk.yellow("[F]")]; // ["🗀", "🗁"]; // "📁⧇Ⓞ"
+    return [yellow("[F]"), yellow("[F]")]; // ["🗀", "🗁"]; // "📁⧇Ⓞ"
   }
   switch (ref.nodeClass) {
     case NodeClass.Object:
-      return [chalk.cyanBright("[O]"), chalk.cyanBright("[O]")];
+      return [cyanBright("[O]"), cyanBright("[O]")];
     case NodeClass.Variable:
-      return [chalk.greenBright("[V]"), chalk.greenBright("[V]")];
+      return [greenBright("[V]"), greenBright("[V]")];
     case NodeClass.Method:
-      return [chalk.magenta("[M]"), chalk.magenta("[M]")];
+      return [magenta("[M]"), magenta("[M]")];
     case NodeClass.ObjectType:
-      return [chalk.bgCyanBright("[O]"), chalk.cyan("[OT]")];
+      return [bgCyanBright("[O]"), cyan("[OT]")];
     case NodeClass.VariableType:
-      return [chalk.bgGreenBright("[V]"), chalk.yellow("Ⓥ")];
+      return [bgGreenBright("[V]"), yellow("Ⓥ")];
     case NodeClass.ReferenceType:
-      return [chalk.bgWhiteBright.black("[R]"), chalk.yellowBright("➾")];
+      return [bgWhiteBright.black("[R]"), yellowBright("➾")];
     case NodeClass.DataType:
-      return [chalk.bgBlueBright("[D]"), chalk.bgBlueBright("Ⓓ")];
+      return [bgBlueBright("[D]"), bgBlueBright("Ⓓ")];
     case NodeClass.View:
-      return [chalk.magentaBright("[V]"), chalk.magentaBright("Ⓓ")];
+      return [magentaBright("[V]"), magentaBright("Ⓓ")];
   }
   return s;
 }
@@ -194,29 +201,29 @@ export class Model extends EventEmitter {
 
     this.client.on("backoff", function (number, delay) {
       data.backoffCount += 1;
-      console.log(chalk.yellow(`backoff  attempt #${number} retrying in ${delay / 1000.0} seconds`));
+      console.log(yellow(`backoff  attempt #${number} retrying in ${delay / 1000.0} seconds`));
     });
 
     this.client.on("start_reconnection", () => {
-      console.log(chalk.red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting reconnection !!!!!!!!!!!!!!!!!!! " + this.endpointUrl));
+      console.log(red(" !!!!!!!!!!!!!!!!!!!!!!!!  Starting reconnection !!!!!!!!!!!!!!!!!!! " + this.endpointUrl));
     });
 
     this.client.on("connection_reestablished", () => {
-      console.log(chalk.red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!! " + this.endpointUrl));
+      console.log(red(" !!!!!!!!!!!!!!!!!!!!!!!!  CONNECTION RE-ESTABLISHED !!!!!!!!!!!!!!!!!!! " + this.endpointUrl));
       data.reconnectionCount++;
     });
 
     // monitoring des lifetimes
     this.client.on("lifetime_75", (token) => {
       if (this.verbose) {
-        console.log(chalk.red("received lifetime_75 on " + this.endpointUrl));
+        console.log(red("received lifetime_75 on " + this.endpointUrl));
       }
     });
 
     this.client.on("security_token_renewed", () => {
       data.tokenRenewalCount += 1;
       if (this.verbose) {
-        console.log(chalk.green(" security_token_renewed on " + this.endpointUrl));
+        console.log(green(" security_token_renewed on " + this.endpointUrl));
       }
     });
   }
@@ -250,9 +257,9 @@ export class Model extends EventEmitter {
       if (this.client!.securityMode !== MessageSecurityMode.None && err.message.match(/has been disconnected by third party/)) {
         console.log(
           "Because you are using a secure connection, you need to make sure that the certificate\n" +
-            "of opcua-commander is trusted by the server you're trying to connect to.\n" +
-            "Please see the documentation for instructions on how to import a certificate into the CA store of the server.\n" +
-            `The opcua-commander certificate is in the folder \n${chalk.cyan(this.client!.certificateFile)}`
+          "of opcua-commander is trusted by the server you're trying to connect to.\n" +
+          "Please see the documentation for instructions on how to import a certificate into the CA store of the server.\n" +
+          `The opcua-commander certificate is in the folder \n${cyan(this.client!.certificateFile)}`
         );
       }
       this.emit("connectionError", err);
@@ -263,7 +270,7 @@ export class Model extends EventEmitter {
       this.session = await this.client!.createSession(this.userIdentity);
     } catch (err) {
       console.log(" Cannot create session ", err.toString());
-      console.log(chalk.red("  exiting"));
+      console.log(red("  exiting"));
       setTimeout(function () {
         return process.exit(-1);
       }, 25000);
@@ -312,12 +319,12 @@ export class Model extends EventEmitter {
       return data === "true" || data === "1" || data === true;
     };
     const coerceNumber = (data: any) => {
-     return  parseInt(data, 10);
+      return parseInt(data, 10);
     };
     const coerceNumberR = (data: any) => {
-      return  parseFloat(data );
-     };
-     
+      return parseFloat(data);
+    };
+
     const coerceNoop = (data: any) => data;
 
     const coerceFunc = (dataType: DataType) => {
@@ -440,7 +447,7 @@ export class Model extends EventEmitter {
         //   xxx                monitoredItemsList.setRows(monitoredItemsListData);
 
         monitoredItem.on("changed", (dataValue: DataValue) => {
-          console.log(" value ", node.browseName, node.nodeId.toString(), " changed to ", chalk.green(dataValue.value.toString()));
+          console.log(" value ", node.browseName, node.nodeId.toString(), " changed to ", green(dataValue.value.toString()));
           if (dataValue.value.value.toFixed) {
             node.valueAsString = w(dataValue.value.value.toFixed(3), 16, " ");
           } else {
@@ -485,7 +492,7 @@ export class Model extends EventEmitter {
     });
   }
 
-  public async readNodeAttributes(nodeId: NodeId): Promise<{attribute: string, text:string}[]> {
+  public async readNodeAttributes(nodeId: NodeId): Promise<{ attribute: string, text: string }[]> {
     if (!this.session) {
       return [];
     }
@@ -495,9 +502,9 @@ export class Model extends EventEmitter {
     }));
 
     try {
-    
+
       const dataValues = await this.session!.read(nodesToRead);
-      const results: {attribute: string, text: string}[] = [];
+      const results: { attribute: string, text: string }[] = [];
 
       for (let i = 0; i < nodesToRead.length; i++) {
         const nodeToRead = nodesToRead[i];
@@ -605,8 +612,8 @@ export class Model extends EventEmitter {
     }
   }
 }
-function invert<T>(o: Record<string,T>) {
-  const r: Record<string,string> = {};
+function invert<T>(o: Record<string, T>) {
+  const r: Record<string, string> = {};
   for (const [k, v] of Object.entries(o)) {
     r[v.toString()] = k;
   }

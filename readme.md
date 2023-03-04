@@ -6,6 +6,8 @@
 ![alt text](
 https://raw.githubusercontent.com/node-opcua/opcua-commander/master/docs/demo.gif "...")
 
+[![Get it from the Snap Store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/opcua-commander)
+
 
 ### install from npm
 

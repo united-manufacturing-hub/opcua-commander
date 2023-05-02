@@ -40,7 +40,7 @@
   },
   "dependencies": {
     "node-opcua-certificate-manager": "^2.99.0",
-    "node-opcua-client": "^2.99.0",
+    "node-opcua-client": "^2.102.0",
     "node-opcua-pki": "^3.0.2",
     "blessed": "^0.1.81",
     "chalk": "4.1.2",

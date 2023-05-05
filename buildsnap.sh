@@ -1,6 +1,13 @@
 #!/bin/bash
 VERSION=`jq '.version' package.json`
-echo snapversion = $VERSION
-sed -z -i -e "s/^version: .*/version: ${VERSION}/" snap/snapcraft.yaml
+echo version  from package.json = $VERSION
+
+echo "----------------------------------------------------------------------"
+sed -i "s/^version: .*/version: ${VERSION}/" snap/snapcraft.yaml
+cat snap/snapcraft.yaml
+echo "----------------------------------------------------------------------"
 npm install
 snapcraft 
+echo  to nstall locally:  snap install  opcua-commander_${VERSION}_amd64.snap --dangerous
+echo  to publish:  snapcraft upload --release=stable opcua-commander_${VERSION}_amd64.snap
+

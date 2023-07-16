@@ -1,7 +1,7 @@
-name: opcua-commander # you probably want to 'snapcraft register <name>'
-base: core20
+name: opcua-commander 
+base: core22
 version: "0.27.0"
-summary: Curse based OPCUA Client for the commande line
+summary: Curse based OPCUA Client for the command line
 description: |
   opcua-commander is a OPCUA Client application that runs in the terminal.
   It's based on ncurse and NodeOPCUA.
@@ -13,17 +13,19 @@ parts:
   opcua-commander:
     # See 'snapcraft plugins'
     plugin: npm
-    # npm-include-node: true
-    npm-node-version: "16.14.2"
+    npm-include-node: true
+    npm-node-version: "18.16.1"
     # plugin: nodejs
     # nodejs-package-manager: npm
     # nodejs-version: "18.9.1"
     source: . 
     stage-packages:
       - openssl
- 
+
 apps:
   opcua-commander:
     command: bin/opcua-commander
     plugs:
       - network
+    environment:
+      OPENSSL_CONF: /dev/null

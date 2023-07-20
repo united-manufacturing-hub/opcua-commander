@@ -39,8 +39,8 @@
     "url": "https://github.com/node-opcua/opcua-commander/issues"
   },
   "dependencies": {
-    "node-opcua-certificate-manager": "^2.105.0",
-    "node-opcua-client": "^2.107.0",
+    "node-opcua-certificate-manager": "^2.108.0",
+    "node-opcua-client": "^2.108.0",
     "node-opcua-pki": "^4.2.1",
     "blessed": "^0.1.81",
     "chalk": "4.1.2",

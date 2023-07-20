@@ -130,7 +130,10 @@ if (!endpointUrl) {
   );
 
   const version = require("../package.json").version;
+  const node_opcua_version = require("node-opcua-client/package.json").version;
+
   console.log(chalk.green(" Welcome to Node-OPCUA Commander ") + version);
+  console.log(chalk.green("  node-opcua      = ") + node_opcua_version);
   console.log(chalk.cyan("   endpoint url    = "), endpointUrl.toString());
   console.log(chalk.cyan("   securityMode    = "), MessageSecurityMode[securityMode]);
   console.log(chalk.cyan("   securityPolicy  = "), securityPolicy.toString());

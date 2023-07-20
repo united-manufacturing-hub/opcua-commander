@@ -1,4 +1,6 @@
 #!/bin/bash
+npm run build
+npm run bundle
 VERSION=`jq '.version' package.json`
 echo version  from package.json = $VERSION
 

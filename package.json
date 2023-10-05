@@ -14,7 +14,7 @@
   "scripts": {
     "build": "tsc -b && npm run bundle",
     "bundle": "npx -y esbuild --bundle --outfile=bin/bundle.js --external:blessed  --external:chalk --external:wrap-ansi --minify-syntax --sourcemap --platform=node lib/index.ts",
-    "release": "npm run build && && npm run bundle && npx release-it",
+    "release": "npm run build && npm run bundle && npx release-it",
     "test": "echo \"Error: no test specified\" && exit 1",
     "ncu": "npx npm-check-updates -u -x chalk,yargs,env-paths,update-notifier,camel-case,cli-truncate",
     "start": "node bin/opcua-commander",
@@ -43,6 +43,8 @@
     "node-opcua-client": "^2.115.0",
     "node-opcua-pki": "^4.7.0",
     "blessed": "^0.1.81",
+    "cli-truncate": "2.1.0",
+    "check-node-version": "4.2.1",
     "chalk": "4.1.2",
     "wordwrap": "^1.0.0",
     "yargs": "17.5.1"

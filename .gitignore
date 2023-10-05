@@ -10,3 +10,4 @@ dist/
 *.snap
 bin/bundle.*
 credentials*
+*.tgz

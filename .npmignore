@@ -1,2 +1,14 @@
 docs/demo.gif
 *.tgz
+snap/
+*.snap
+buildsnap.sh
+Dockerfile
+.vscode/
+lib
+dist
+*.map
+tsconfig.json
+.dockerignore
+.eslintrc*
+.prett*

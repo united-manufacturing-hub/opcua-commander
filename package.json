@@ -2,7 +2,7 @@
   "name": "opcua-commander",
   "version": "0.32.0",
   "description": "OPCUA CLI client",
-  "main": "index.js",
+  "main": "bin/bundle.js",
   "keywords": [
     "opcua",
     "iot",
@@ -14,7 +14,7 @@
   "scripts": {
     "build": "tsc -b && npm run bundle",
     "bundle": "npx -y esbuild --bundle --outfile=bin/bundle.js --external:blessed  --external:chalk --external:wrap-ansi --minify-syntax --sourcemap --platform=node lib/index.ts",
-    "release": "npm run build && npx release-it",
+    "release": "npm run build && && npm run bundle && npx release-it",
     "test": "echo \"Error: no test specified\" && exit 1",
     "ncu": "npx npm-check-updates -u -x chalk,yargs,env-paths,update-notifier,camel-case,cli-truncate",
     "start": "node bin/opcua-commander",

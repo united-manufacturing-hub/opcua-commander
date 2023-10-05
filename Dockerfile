@@ -1,7 +1,6 @@
-FROM node:alpine3.10
+FROM node:20-alpine3.18
 
-
-RUN apk add openssl dos2unix
+RUN apk add dos2unix
 
 # Create app directory
 WORKDIR /opt/opcuacommander
@@ -16,9 +15,7 @@ RUN dos2unix bin/opcua-commander
 
 # If you are building your code for production
 # The set registry can help in situations behind a firewall with scrict security settings and own CA Certificates.
-RUN npm config set registry http://registry.npmjs.org/ && npm ci --only=production --unsafe-perm=true --allow-root
-# Install typescript and build solution
-RUN npm install -g typescript && npm run build
+RUN npm config set registry http://registry.npmjs.org/ && npm install -g typescript  && npm ci --mit=dev --unsafe-perm=true --allow-root && npm run build
 
 ENTRYPOINT [ "./bin/opcua-commander" ]
 # to build

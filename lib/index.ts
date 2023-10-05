@@ -6,6 +6,11 @@ import { Model, makeUserIdentity } from "./model/model";
 import { View } from "./view/view";
 import { MessageSecurityMode, SecurityPolicy } from "node-opcua-client";
 import { makeCertificate } from "./make_certificate";
+import fs from "fs";
+import path from "path";
+
+const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf-8"));
+const version = packageJson.version;
 
 const check = require("check-node-version");
 
@@ -26,10 +31,9 @@ async function check_nodejs() {
       }
     }
     process.exit();
- }
-  catch(err) {
-      console.error(err);
-      process.exit();
+  } catch (err) {
+    console.error(err);
+    process.exit();
   }
 }
 
@@ -112,7 +116,6 @@ if (!endpointUrl) {
 }
 
 (async () => {
-
   await check_nodejs();
 
   const { certificateFile, clientCertificateManager, applicationUri, applicationName } = await makeCertificate();
@@ -129,7 +132,6 @@ if (!endpointUrl) {
     applicationUri
   );
 
-  const version = require("../package.json").version;
   const node_opcua_version = require("node-opcua-client/package.json").version;
 
   console.log(chalk.green(" Welcome to Node-OPCUA Commander ") + version);

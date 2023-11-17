@@ -39,8 +39,8 @@
     "url": "https://github.com/node-opcua/opcua-commander/issues"
   },
   "dependencies": {
-    "node-opcua-certificate-manager": "^2.114.0",
-    "node-opcua-client": "^2.115.0",
+    "node-opcua-certificate-manager": "^2.117.0",
+    "node-opcua-client": "^2.117.0",
     "node-opcua-pki": "^4.7.0",
     "blessed": "^0.1.81",
     "cli-truncate": "2.1.0",
@@ -50,10 +50,10 @@
     "yargs": "17.5.1"
   },
   "devDependencies": {
-    "@types/blessed": "^0.1.23",
-    "@types/wordwrap": "^1.0.1",
+    "@types/blessed": "^0.1.25",
+    "@types/wordwrap": "^1.0.3",
     "typescript": "^5.2.2",
-    "es-abstract": "^1.22.2",
+    "es-abstract": "^1.22.3",
     "source-map-support": "^0.5.21"
   }
 }

@@ -43,24 +43,27 @@ async function getParent(session: IBasicSession, nodeId: NodeId): Promise<{ sep:
   return null;
 }
 export async function extractBrowsePath(session: IBasicSession, nodeId: NodeId): Promise<string> {
-  const browseName = await readBrowseName(session, nodeId);
-  const pathElements = [];
-  pathElements.push(`${browseName.namespaceIndex}:${browseName.name}`);
+  try {
+    const browseName = await readBrowseName(session, nodeId);
+    const pathElements = [];
+    pathElements.push(`${browseName.namespaceIndex}:${browseName.name}`);
 
-  let parent = await getParent(session, nodeId);
-  while (parent) {
-    if (sameNodeId(parent.parentNodeId, resolveNodeId("RootFolder"))) {
-      break;
+    let parent = await getParent(session, nodeId);
+    while (parent) {
+      if (sameNodeId(parent.parentNodeId, resolveNodeId("RootFolder"))) {
+        break;
+      }
+
+      const browseName = await readBrowseName(session, parent.parentNodeId);
+      pathElements.unshift(`${browseName.namespaceIndex}:${browseName.name}${parent.sep}`);
+      parent = await getParent(session, parent.parentNodeId);
     }
+    const browsePath = "/" + pathElements.join("");
 
-    const browseName = await readBrowseName(session, parent.parentNodeId);
-    pathElements.unshift(`${browseName.namespaceIndex}:${browseName.name}${parent.sep}`);
-    parent = await getParent(session, parent.parentNodeId);
+    // verification
+    const a = await session.translateBrowsePath(makeBrowsePath("i=84", browsePath));
+    return browsePath + " (" + a.targets[0]?.targetId?.toString() + ")";
+  } catch (err) {
+    return "err" + (err as Error).message;
   }
-  const browsePath =  "/" + pathElements.join("");
-
-  // verification
-  const a = await session.translateBrowsePath(makeBrowsePath("i=84", browsePath));
-  return browsePath + " (" + a.targets[0]?.targetId?.toString() + ")";
-
 }

@@ -11,6 +11,7 @@ import {
 import {
   accessLevelFlagToString,
   AttributeIds,
+  browseAll,
   BrowseDirection,
   ClientAlarmList,
   ClientMonitoredItem,
@@ -561,7 +562,7 @@ export class Model extends EventEmitter {
     ];
 
     try {
-      const results = await this.session.browse(nodesToBrowse);
+      const results = await browseAll(this.session, nodesToBrowse);
 
       // organized
       let result = results[0];
